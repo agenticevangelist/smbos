@@ -1,0 +1,61 @@
+Search
+
+Search enables users to specify a word or a phrase to find relevant content without navigation.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+Search offers users a way to explore a website or application using keywords. Search can be used as the primary means of discovering content or as a filter to aid the user in finding content.
+
+Formatting
+
+There are two styles of search, default and fluid. They share the same functionality but look visually different, influencing where to use them.
+
+A default style input is shown on the top and fluid style is on the bottom.
+
+A default style input is shown on the top and fluid style is on the bottom.
+
+There are three default search height sizes: small, medium, and large. The width varies in size based on content, layout, and design. Supporting three different search sizes gives you more flexibility when structuring layouts.
+
+There is only one input height at 64px and it is visually larger than the default heights.
+
+Place the search component within a user interface where users expect to find it and where it is appropriate for how it is being used in context, whether at a global level, page-specific level, or within a component.
+
+The default search can be arranged on the grid to align the container with other components containers. Search can also hang to align with other hanging component containers on the same page, depending on the use case.
+
+Do align the default search container vertically with other text on the page.
+
+Do hang the fluid search container with other hanging components.
+
+Content
+
+Useful and short text hinting at what the user can search for. For example, “Search for networks or devices.”
+
+For further content guidance, see Carbon’s content guidelines.
+
+Behaviors
+
+The search component has four states: enabled, focus, filled, and disabled.
+
+Click on the search field input to start typing. Once a user starts typing, a close icon (‘x’) will appear and provides a way to clear the input field by clicking on the Close icon.
+
+Press Enter to submit text as a search term, or press Esc to clear the search field. Once a user starts typing, a Close icon (‘x’) will appear and provides a way to clear the input field by pressing the Spaceor Enter keys.
+
+Related
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

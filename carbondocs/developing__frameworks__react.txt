@@ -1,0 +1,56 @@
+Frameworks
+
+The Carbon React library provides front-end developers and engineers a collection of reusable React components to build websites and user interfaces. Adopting the library enables developers to use consistent markup, styles, and behavior in prototype and production work.
+
+Resources
+
+Install
+
+If you prefer Yarn:
+
+Note:
+Please ensure the peerDependencies for @carbon/react are installed in your project to avoid errors.
+
+Getting started
+
+The @carbon/react package provides components, styles and icons for the Carbon Design System.
+
+Components require the use of a build pipeline in your project. This could be in the form of a bundler, framework, or other build tool. Some examples include Next.js, Vite, Parcel, and Webpack. A comprehensive list is available in the react documentation.
+
+To use a component, you can import it directly from the package:
+
+To include the styles for a specific component, you can either import all the styles from the project or include the styles for a specific component:
+
+The @carbon/react package also provides icon components that you can include in your project. You can import these icon components from the @carbon/react/icons entrypoint:
+
+A full list of available icons is provided in the icon library.
+
+For a more in depth introduction to using @carbon/react in a webpack-based app, check out our React tutorial.
+
+Development
+
+Please refer to the Contribution Guidelines before starting any work.
+
+We use Storybook for developing components.
+
+Open browser to http://localhost:9000/.
+
+Develop components in their respective folders (/components or /internal).
+
+Author stories within the *.stories.js* files.
+
+View available React Components in the
+@carbon/react
+storybook. Usage information is available under the “docs” tab.
+
+Troubleshooting
+
+If you experience any issues while getting set up with Carbon Components React, please head over to the GitHub repo for more guidelines and support. Please create an issue if your issue does not already exist.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

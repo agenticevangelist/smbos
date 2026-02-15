@@ -1,0 +1,49 @@
+Content
+
+Well-designed content empowers people to use our offerings with ease. These guidelines have been developed from real-life examples and are for everyone who is writing or reviewing copy in IBM product interfaces.
+
+Content foundations
+
+Familiarity with key IBM guidance is essential to creating experiences that are consistent, that provide an interoperability of experience with other offerings, and that represent IBM as a company.
+
+The Carbon content guidelines are built upon and informed by the following foundational IBM assets.
+
+Some of this content is accessible to IBMers only.
+
+Voice and tone
+
+Voice in writing expresses the core of a company’s personality. Whether spoken or written, one of the most important characteristics of IBM is our unique brand voice. Our verbal identity must remain as recognizable to everyone as our visual identity.
+
+Understanding IBM’s personality and voice will help you reach for the best words as you develop content.
+
+IBM Brand Center offers the following guidelines on voice.
+
+For more information, see the IBM Brand Center verbal expression guidelines.
+
+Tone describes how the IBM voice is expressed, and as such it can adapt to different situations. For example, the words chosen for error messages differ greatly from words you might see in an onboarding flow. The tone of error messages is economical and direct, and they are often written in short phrases instead of sentences. Onboarding flows typically take a little more time, with full sentences and friendly explanations.
+
+The underlying voice in each case is consistent but with different word choices and a different sentence structure, the style and tone adapts.
+
+Writing for accessibility
+
+For detailed guidance about writing for all users, please read the Content design section of the IBM Accessibility site.
+
+It provides detailed guidance on the following topics:
+
+Further guidance can be found in the Web Content Accessibility guidelines.
+
+Questions and feedback
+
+If there’s something you need and cannot find, or if you need clarification about a particular use case, you can ask questions in the Carbon Slack channel, open a GitHub issue, or connect with us in one of our meetups.
+
+References
+
+External audiences can see the IBM Style guidance in The IBM Style Guide: Conventions for Writers and Editors (IBM Press, 2011).
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

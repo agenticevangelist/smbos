@@ -1,0 +1,230 @@
+@use '@carbon/react/scss/type' as *;
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/colors' as *;
+@use '@carbon/react/scss/breakpoint' as *;
+
+// App Shell Container - Flex Row
+.app-shell {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--cds-background);
+}
+
+// SHARED SIDEBAR STYLES
+.left-sidebar, .right-sidebar {
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden; // Hide content when width is 0
+  background-color: var(--cds-layer-01);
+  z-index: 100;
+  
+  &.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    border: none;
+    flex: 0 0 0 !important;
+  }
+}
+
+.left-sidebar {
+  border-right: 1px solid var(--cds-border-subtle);
+}
+
+.right-sidebar {
+  border-left: 1px solid var(--cds-border-subtle);
+}
+
+// RESIZERS
+.resizer {
+  width: 4px;
+  cursor: col-resize;
+  background-color: transparent;
+  z-index: 1000;
+  flex-shrink: 0;
+  transition: background-color 0.1s;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: transparent;
+    transition: background-color 0.1s;
+  }
+
+  &:hover, &.resizing {
+    &::after {
+      background-color: var(--cds-interactive-01);
+    }
+  }
+}
+
+// MAIN AREA
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  position: relative;
+  
+  .cds--header {
+    position: relative !important;
+    top: auto;
+    left: auto;
+    width: 100%;
+    z-index: 90;
+    flex: 0 0 3rem;
+  }
+
+  .cds--content {
+    flex: 1;
+    overflow-y: auto;
+    margin-left: 0 !important;
+    padding: $spacing-05;
+    height: auto !important;
+    margin-top: 0 !important;
+    background-color: var(--cds-background);
+  }
+}
+
+// Panel Styles (Shared between Left and Right)
+.panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.panel-header {
+  padding: 0 $spacing-05;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  background-color: var(--cds-layer-01);
+  display: flex;
+  align-items: center;
+  height: 3rem;
+  flex-shrink: 0;
+  
+  h3 {
+    @include type-style('heading-02');
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--cds-text-primary);
+    font-weight: 600;
+  }
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: var(--cds-background);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  .cds--contained-list {
+    margin-bottom: $spacing-05;
+  }
+
+  .active-item {
+    background-color: var(--cds-layer-selected-01) !important;
+    border-left: 4px solid var(--cds-interactive-01);
+    
+    .cds--contained-list-item__content {
+      font-weight: 600;
+    }
+  }
+}
+
+.sidebar-footer {
+  border-top: 1px solid var(--cds-border-subtle);
+  background-color: var(--cds-layer-01);
+  display: flex;
+  align-items: stretch;
+  min-height: 5rem;
+}
+
+// Chat Messages (inside .sidebar-content)
+.chat-messages {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.chat-input-area {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+// Chat Specific Styles
+.chat-message {
+  width: 100%;
+  padding: $spacing-05;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  background-color: transparent;
+  color: var(--cds-text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-02;
+  
+  &.user {
+    background-color: var(--cds-layer-01);
+  }
+}
+
+.chat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--cds-text-secondary);
+  padding: $spacing-05;
+  text-align: center;
+}
+
+.message-content {
+  @include type-style('body-01');
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: flex-end;
+  color: var(--cds-text-secondary);
+  @include type-style('label-01');
+}
+
+.left-input-container {
+  flex: 1;
+  .cds--text-area__label-wrapper { display: none !important; }
+  .cds--text-area__wrapper {
+    border: none !important;
+    background: transparent;
+    &:focus-within { border-top: 2px solid var(--cds-interactive-01) !important; }
+  }
+  .cds--text-area {
+    resize: none !important;
+    border: none !important;
+    background: transparent;
+  }
+}
+
+.right-button-container {
+  display: flex;
+  align-items: flex-start;
+}

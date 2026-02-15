@@ -1,0 +1,53 @@
+Inline loading
+
+The inline loading component provides visual feedback that data is being processed.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+Inline loading spinners are used to indicate that an action is being processed. They inform users that their request is in progress, providing reassurance even though they do not reveal specific details about the back-end process.
+
+Common actions where inline loading is beneficial include create, update, or delete operations that involve significant data processing. Inline loading can appear in various contexts, such as within a table, after clicking a primary or secondary button, or inside a modal.
+
+Formatting
+
+When inline loading temporarily replaces content, it should appear in the same spot as the content it replaced and maintain the same alignment.
+
+Content
+
+For further content guidance, see Carbon’s content guidelines.
+
+Behaviors
+
+There are four states to inline loading: inactive, active, finished, and error.
+
+The inactive loading state is when no data is being loaded. Inactive has no visual indicator.
+
+The active loading state indicates that the action is still in progress.
+
+The finished loading state indicates that the action completed successfully. The success state is active for 1.5 seconds before calling an optional function onSuccess. Use the onSuccess function to refetch new data, close a modal, or reset a form. If no function is specified the success state will last indefinitely.
+
+The error loading state indicates that the action did not successfully complete. If an error occurs, the inline loading component becomes inactive and an inline notification or error handling within the form should appear.
+
+Any interactive elements associated with the button should be disabled while it is loading. For example, when a user clicks a button on a modal to submit information, the button itself displays a loading state and is disabled until the action is complete. This ensures users cannot interact with the button again during the process.
+
+If an inline loading icon can gain context from an label, it can be used by itself without a visible label. It is most commonly used this way inside a field input.
+
+Related
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

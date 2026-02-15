@@ -1,0 +1,77 @@
+Progress indicator
+
+A progress indicator guides users through any linear, multistep task by showing the user their completed, current, and future steps.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+Progress indicators help manage a user’s expectations when completing a multistep process. They show which step the user is currently on, the total number of steps, and overall progress in completing a task.
+
+Example of a progress indicator used in a payment UI.
+
+Example of a progress indicator used in a payment UI.
+
+Formatting
+
+Progress indicators can be in vertical or horizontal positions depending on the use case and the structure of the UI. When possible, arrange the progress indicator vertically for easier reading.
+
+Example of a progress indicator using vertical alignment.
+
+The progress indicator component can be placed on a full page, in a modal, or in a side panel. It is also common to use the progress indicator in a tearsheet, a component provided by Carbon for IBM Products.
+
+Examples of progress indicators on a full page, tearsheet, and side panel.
+
+Examples of progress indicators on a full page, tearsheet, and side panel.
+
+Content
+
+The label should communicate what the user will accomplish in each step in one or two words. One option is to clearly indicate the action of the step by using the {verb} + {noun} content formula. For example, “Configure IdP” or “Define endpoints.” A label may use one word if it is universally understood, such as “Cart,” “Shipping,” or “Payment.” Avoid vague terms like “Processing.” You may also number each step to make the progression more obvious.
+
+Use the helper text to indicate that a step is optional or that a step is in an error state.
+
+When there is not enough space, consider rewording the label or truncate the label text with an ellipsis and provide a tooltip to convey additional information.
+
+Long helper text may wrap to a second line, and this is preferable to truncation. Wrap the helper text beneath the label so that both maintain left alignment.
+
+Example of a helper text that wraps to the second line and maintains left alignment with the label.
+
+Example of a helper text that wraps to the second line and maintains left alignment with the label.
+
+For further content guidance, see Carbon’s content guidelines.
+
+Behaviors
+
+The progress indicator has seven states: completed, current, not started, error, disabled, hover, and focus. View the Style tab for visual specs of each state and see the status indicator pattern for additional guidance.
+
+By default, the progress indicator is not interactive, providing only a visual update of the users’ progress. There is also an option for an interactive progress indicator, which allows users to navigate to each step.
+
+If the progress indicator is interactive, users can navigate to a step by clicking anywhere within the step label container.
+
+The first step should be selected by default. Users can navigate between steps by pressing Right or Left arrow keys. For additional keyboard interactions, see the Accessibility tab.
+
+When possible, use validation to confirm that a step has been completed before the user continues. If any entry is invalid, the progress indicator should show an error state. Additionally, the invalid entry should be marked with an error state and include an inline error message that helps the user understand the problem and how to fix it. This kind of inline validation (or client-side validation) should happen as soon as the field loses focus.
+
+If the user cannot proceed due to a server-side issue, then an inline notification should appear.
+
+Example of a progress indicator using validation.
+
+Example of a progress indicator using validation.
+
+Related
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

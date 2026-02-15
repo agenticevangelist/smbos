@@ -1,0 +1,81 @@
+File uploader
+
+File uploaders allow users to select one or more files to upload to a specific location.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+File uploaders allow users to upload content of their own. A file uploader is commonly found in forms, but can also live as a standalone element. There are two variants of file uploaders—our default file uploader and a drag and drop file uploader.
+
+Formatting
+
+The button and uploaded files should be the same height. If the file uploader is present in a form with other inputs, use the same height for the form inputs and the file uploader for consistency.
+
+Left align the button or drop zone area with the uploaded files. Multiple files will stack vertically.
+
+When including a button as the action to upload a file, use either a primary or tertiary button depending on your use case. If there is already a primary button present on the page, use a tertiary button for the file uploader so it does not conflict with the primary action.
+
+Content
+
+Use an ellipsis (…) if the filename extends beyond the width of its parent element. A tooltip should appear on hover to disclose the full length of the filename.
+
+Using an icon in the file uploader button is optional. Choose the icon based on the verb that is in the button label. For example, use the “Add” icon for the verb “Add” and the “Upload” icon for the verb “Upload.”
+
+For further content guidance, see Carbon’s content guidelines.
+
+A file that is being uploaded has three distinct states—loading, success, and uploaded.
+
+Dragging your mouse anywhere within the bounds of the drop zone area with an attached file will enable you to drop it inside of the area and begin to upload.
+
+To remove an uploaded file, click the “x” (or delete) icon.
+
+For additional keyboard interactions, see the accessibility tab.
+
+When a specific file cannot be uploaded successfully it will show an error state. We have an option for a single line or multi-line error state depending on how descriptive the message needs to be. Error messages should provide clear guidance to help the user resolve the error.
+
+If the error relates to the file uploader as a whole instead of an individual file, you can alternatively use an inline error notification.
+
+File uploader
+
+A file uploader traditionally uploads one or more files by clicking an action button that prompts a file selection dialog. Once you have selected one or more files from the dialog, the selected files will populate below the file uploader on the page. Your file may temporarily display a loading state before uploading has been successfully completed.
+
+Drag and drop file uploader
+
+Drag and drop file uploaders are used to directly upload files by dragging and dropping them into a drop zone area. Alternatively, you can open files through a file selection dialog by clicking the text link description inside the drop zone.
+
+The drop zone component lets users upload files by dragging and dropping the files into an area on a page, or activating a button. By default, the drag and drop file uploader allows multiple files to be dropped into the drop zone area. However, we also offer functionality to limit a single file to be uploaded.
+
+When dragging files into the drop zone area, the drop zone border changes in color and thickness to indicate the area has been activated and is ready for files. Additionally once the cursor hits the drop zone area it changes with a preview of the file you are about to upload. The style of cursor change is rendered by the browser you use.
+
+A file being dragged into the drop zone area.
+
+A file successfully uploaded when you can upload multiple files.
+
+A file successfully uploaded when you can upload multiple files.
+
+When using a drag and drop file uploader, if the requirement only allows a single file to be uploaded, drag the single file into the drop zone area to upload it. Once uploaded, the drop zone area will be removed to show that you have successfully uploaded a single file. Click the close icon in the uploaded file to remove it.
+
+A file successfully uploaded when you can only upload a single file.
+
+A file successfully uploaded when you can only upload a single file.
+
+References
+
+Page Laubheimer, Drag–and–Drop: How to Design for Ease of Use, (Nielsen Norman Group, 2020)
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

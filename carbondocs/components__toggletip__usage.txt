@@ -1,0 +1,65 @@
+Toggletip
+
+Toggletips display and hide additional information upon the click of a UI trigger element. Toggletips can contain interactive elements.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+Toggletips reveal supplemental content when a user clicks a button and remains actively open until a user dismisses it. A toggletip is comprised of a UI trigger and toggletip content (based on the popover component). Toggletips can include a wide variety of information and interactive elements as long as accessibility requirements are maintained, including focus order and ensuring all functionality is operable through a keyboard interface.
+
+Tooltips and toggletips look similar and both have interactive triggers, but they differ in how they are activated and what they can contain. A tooltip is exposed on hover or focus when you need to disclose brief, supplemental information that is not interactive. A toggletip is used on click or enter when you must expose interactive elements, such as a button, that a user needs to interact with.
+
+Don’t use to present critical information or request required input needed to complete a workflow. Use the modal component instead.
+
+Formatting
+
+The toggletip container has a maximum width of 288px, and its height varies depending on the content inside. We recommend keeping the width within four columns. See more details on the Style tab.
+
+Toggletips can be used on various part of the UI including, but not limited to, headers, data tables, side panels, modals, and read only cards. When active, the toggletip popover may be positioned top, bottom, left, or right to the UI trigger.
+
+Placement of a popover in relation to the trigger depends on the type of popover used.
+
+Content
+
+Heading, body, and footer content can vary based on your use case. To see examples of content used within toggletips, visit the disclosure pattern.
+
+Since the toggletip uses the flexible popover component and disclosure pattern, scrolling is usually not needed. If scrolling is needed, in a dropdown like situation for instance, then the body section should scroll vertically with the header and footer remaining fixed in place if those elements are present. Do not scroll horizontally or let content bleed off the page.
+
+Example of when to scroll within a toggletip. This example is a pattern and is currently not offered as a component.
+
+Example of when to scroll within a toggletip. This example is a pattern and is currently not offered as a component.
+
+For further content guidance, see Carbon’s content guidelines.
+
+Behaviors
+
+The toggletip component has two states: open (click or enter) and closed. By default, the toggletip is hidden and inactive. For more details on toggletip states, see the Style tab.
+
+Toggletips are triggered on click and are dismissed by clicking again on the trigger or anywhere outside the active popover or UI trigger.
+
+Toggletips are triggered by pressing Enter or Space while the trigger element has focus. Users can dismiss a toggletip by pressing Escape. For additional keyboard interactions, see the Accessibility tab.
+
+Related
+
+Popovers are used as a base layer in some of our components like tooltips, overflow menus, and dropdown menus. For further guidance, see Carbon’s popover component.
+
+Disclosures use popovers as a base layer. Disclosures are comprised of a popover container, text, and interactive elements. Interactive elements are kept in the tab order of the page.
+
+Tooltips display additional information upon hover or focus. The information included should be contextual, helpful, and nonessential while providing that extra ability to communicate and give clarity to a user.
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

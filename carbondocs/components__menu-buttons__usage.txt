@@ -1,0 +1,167 @@
+Menu buttons
+
+Menu buttons, including menu buttons, combo buttons, and overflow menus, open a menu with a list of interactive options.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+There are three variants of menu buttons (or menu triggers): menu button, combo button, and overflow menu button. Menu buttons are comprised of a button and a menu, which can be clicked to trigger an action or selected to initiate an action from a menu.
+
+Menu button, combo button, and overflow menu are useful when you need to show numerous options but have limited screen space available to display them. By hiding less frequently used or advanced options until the user needs them, it avoids cluttering the main interface with too many options.
+
+A feature flag has been added to the overflow menu variant of menu buttons to improve accessibility and changes parts of its functionality, not its visual appearance. For code-specific feature flag information, refer to the Code tab. The current overflow menu is not being deprecated, but teams are encouraged to use the feature flag overflow menu for their products moving forward. Once the next major release (v12) is released in the future, this feature flag will become the default version of the component.
+
+Formatting
+
+A. Primary button
+B. Menu
+
+A. Primary button
+B. Menu
+C. Icon button
+
+A. Icon button
+B. Menu
+
+Menu buttons come in four sizes: extra small, small, medium, and large. When using menu buttons, the height of each item in the menu reflects the same size of the trigger button being used. See more about size specifications on the Style tab.
+
+Do match the height of the menu buttons and the menu
+
+Do not mix the height of the menu buttons and the menu
+
+By default, the menu button and combo button follow the button structure style, and the menu maintains a minimum width of 160px to prevent a narrow appearance.
+
+Menu default width when both button label and menu option labels are short
+
+Menu default width when both button label and menu option labels are short
+
+If the menu item labels become longer, the menu button and combo button remain the same size while the menu component can expand up to a maximum of 288px. Conversely, if the button labels become longer, the menu component should not appear narrower but should extend to match the width of the menu buttons.
+
+If you opt for fluid-width default buttons, both the menu button (or the combo button) and the menu should have the same width.
+
+Do use the minimum width
+
+Do not narrow the menu to fit with other elements
+
+Do match the width when the menu or combo button label becomes longer
+
+Do not make the menu appear shorter than the menu or combo buttons
+
+Ghost buttons only adhere to the button style. This is because enlarging the ghost button’s width to match the menu’s width would result in the caret appearing disconnected from its associated button, especially when the menu button is in its closed state.
+
+Do use default ghost button in all cases
+
+Do not use fluid ghost button in any cases
+
+By default, combo button, menu button, or overflow button remains positioned at the top, to the left or right side of the menu when it is open, depending on the available space and layout.
+
+Alternatively, open menus can be positioned at the bottom, to the left or right of its associated menu button trigger, depending on the available space and layout.
+
+These buttons are ideal for page headers, where multiple, distinct actions may impact the page content, and where real-estate is limited. In the page header component, multiple buttons will become a single action button at smaller screen sizes. These buttons should only be used when the actions affect a full page or a large object on a page (examples include a canvas UI, diagram, or whole data table).
+
+When actions affect a smaller proportion of a page, such as table rows or cards, use an overflow menu.
+
+Content
+
+The text label of the button is important to communicate the action that is triggered when the user interacts with it. The text label must accurately describe the button action or indicate that interacting with it displays a list of possible actions.
+
+For further content guidance, see Carbon’s content guidelines.
+
+Universal behaviors
+
+The default and interactive states of menu buttons should follow the button style guidelines.
+
+Users can reveal the menu by:
+
+Mouse and keyboard interactions for menu button
+
+Users can reveal the menu by:
+
+Mouse interactions for combo button
+
+Keyboard interactions for combo button
+
+Users can reveal the overflow menu by:
+
+Keyboard interactions for overflow menu
+
+Menu button
+
+Menu buttons group actions that share the same level of importance. The icon used within the menu button should always be a caret in order to visually convey to the user that there are options to select from. There are three main use cases where using a menu button is recommended:
+
+Menu button comes in three different button types: primary, tertiary, and ghost. For detailed visuals, visit the Style tab.
+
+Menu buttons are effective when a single action affects multiple distinct objects. This is particularly applicable when users need to Create or Add various objects, and all these objects are equally relevant options.
+
+The shared action should not be repeated in the menu list. This adds unnecessary clutter and makes each option less distinct at a glance.
+
+Do add distinct items for the action
+
+Do not repeat the action in the action item
+
+Another common use of a menu button is grouping actions related to a common label. An example of this is when users have multiple approaches to execute an action, all of which are presented as choices within the menu button.
+
+In many cases, actions on a page may not use the same verb or have a shared label for the menu button. When grouped actions remain distinct, consider labeling the menu button as ‘Actions’ to encompass all available choices.
+
+Example shows the menu button with possible actions that could influence the data within tab contents
+
+Combo button
+
+A combo button is composed of two buttons: the left is the default option (the most commonly used selection), and the right (chevron icon) shows the rest of the available options. A combo button provides quick access to a default action while also offering a list of related actions or options.
+
+The combo button is expected to have less use than the menu button, as the additional actions are more hidden than they would be in menu button. However, this button does have particular use where screen real estate is limited and one of the actions has particular importance.
+
+Combo button has only one button type: primary.
+
+Remember to choose the default, primary action that will be displayed in the primary button so it is not hidden within the menu of additional actions. The primary default action is typically the most commonly used action there is to take.
+
+Example shows that users mostly choose to save records, while less common options are hidden as extra actions.
+
+Example shows that users mostly choose to save records, while less common options are hidden as extra actions.
+
+Combo buttons reduce visual complexity by grouping similar commands together. For example, how navigation menus group together related options to enable conceptual understanding of the site information structure.
+
+Example shows that many actions (ghost buttons) applying to the same data can be replaced by the combo button.
+
+Example shows that many actions (ghost buttons) applying to the same data can be replaced by the combo button.
+
+Overflow menu
+
+Overflow menu is also another option that is available to the user when there is a space constraint, usually used in data table rows or in cards. Overflow menu has the ghost button style only.
+
+When there are more than three interactive icons, consider moving less important ones into the overflow menu. The overflow menu then takes the place of a third action.
+
+The overflow icon can be customized to align with the product’s requirements. However, it’s advisable to make minimal changes to the overflow menu’s icon to maintain consistency across the product and ensure a consistent user experience.
+
+Overflow menu displays extra options with simple text, typically utilized within data table rows or cards. The tab tip popover allows the user to include more complex inputs such as a checkbox group or a radio button group, usually connected to a data table toolbar.
+
+Use overflow menus in data table row
+
+Use a popover in the data table toolbar
+
+Related
+
+To learn more about how to use the menu component, see menu buttons.
+
+To understand how the menu component can be used differently from the dropdown component, see dropdown.
+
+The popover component is visually similar to menu, but is used for different purposes. See popover for more information.
+
+References
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

@@ -1,0 +1,33 @@
+React tutorial
+
+Welcome to Carbon! This tutorial will guide you in creating a React app using Next.js with the Carbon Design System. We’ll teach you the ins and outs of using Carbon components, while introducing web development best practices along the way.
+
+Here’s a preview of what you will build:
+
+Audience
+
+This tutorial is intended for people with all amounts of web development experience. If you want to jump straight to code, you may want to skip this tutorial and go to the developers getting started page.
+
+Prerequisites
+
+This is a web development tutorial that uses the Carbon React components built with Next.js. If you’re just getting started with React and enjoy learning-by-doing, check out the official React intro tutorial. You’ll want to supplement that with their step-by-step guide.
+
+As mentioned, we will be building this app using Next.js. Don’t worry, no prior knowledge about Next.js will be needed. Check out the official Next.js introduction. If you want to learn more you can supplement that with their step-by-step tutorial.
+
+React apps often use the latest and greatest from JavaScript (ES6/ES2015). You’ll want to be up to speed on the most commonly used features of the language. Let’s Learn ES6 covers those features in depth.
+
+We’ll be using GitHub to build an app together, so if you’re new to GitHub, make sure you’ve made an account. Their getting started guide is a great way to learn GitHub.
+
+This tutorial uses Yarn for dependency management so we can take advantage of offline installs. Make sure that you have Yarn installed prior to starting the tutorial so you can follow along step-by-step.
+
+Outline
+
+Each step in this tutorial illustrates a different aspect of developing web applications with Carbon. We recommend starting with step 1, but you can pick up any step and take it from there.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

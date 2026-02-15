@@ -1,0 +1,37 @@
+Accessibility
+
+IBM firmly believes that web and software experiences should be accessible for everyone. Carbon is committed to following and complying with accessibility best practices.
+
+Carbon and accessibility
+
+Accessible design not only helps users with disabilities; it provides better user experiences for everyone.
+
+An accessible product should:
+
+Carbon components follow the IBM Accessibility Checklist which is based on WCAG AA, Section 508, and European standards. The Carbon team strives to write perceivable, operable, and understandable patterns for all users—including those employing a screen reader or other assistive technology.
+
+Individually accessible elements and components are part of building accessible products. Use this guide to design and build products that anyone can use.
+
+Low vision can include partial sight in one or both eyes and can range from mild to severe. It affects approximately 4% of the world’s population.
+
+Color-blindness affects 8% of all men and 0.4% of women.
+
+Low vision can include partial sight in one or both eyes and can range from mild to severe. It affects about 4% of the world’s population.
+
+Low vision users may be using a screen reader to preview your website or experience, so be sure to follow keyboard guidelines to ensure the page is read to the user in a logical order.
+
+Functional cognitive disabilities can result in difficulties with:
+
+Global accessibility standards
+
+Tools
+
+Resources
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

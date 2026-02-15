@@ -1,0 +1,85 @@
+Slider
+
+Sliders provide a visual indication of adjustable content, where the user can increase or decrease the value by moving the handle along a horizontal track.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+A slider allows a user to select a single value or range of values available within the slider track. The slider comes in two different variants: default and range. The default slider is accompanied by a label and a number input that doubles as a display for the slider’s current selected value. The range slider has a label and two number inputs to display the slider’s selected range of values.
+
+Formatting
+
+Content
+
+Do label the slider appropriately with the value being modified
+
+Do label the slider appropriately with the value being modified
+
+Do not use in ranges that result in non-discrete large increments
+
+Do not use in ranges that result in non-discrete large increments
+
+Behaviors
+
+The default and range sliders have the following states: enabled, hover, focus, active, error, warning, disabled, read-only, and skeleton. For more information on states, visit the interactive state guidance on the style tab.
+
+Interactions
+
+Users can trigger a value change by clicking anywhere on the horizontal track. Users can also drag the slider handle. Either method repositions the slider and automatically updates the value in the number input for the single slider. The closest value (minimum or maximum value) will be updated depending on where the user clicks on the range slider. Either method repositions the slider and automatically updates the value in the number input.
+
+Users can enter an exact numeric value into the number input field or use the up, down, left, or right arrow keys to change the value. Either method adjusts the slider handle to the corresponding position.
+
+Users can also increment the value by using the arrow keys when the slider receives focus. The arrow keys, in combination with the shift key can alter the slider by the value of the stepMultiplier.
+
+Once focus is established on the range slider, the user can define a numerical range by:
+
+Default slider
+
+The default slider, in its most basic form, is accompanied by a label, a number input, and a slider track with a handle. Users can use the handle or the number input to select a value from within the slider track. When needing to select a range within the slider track, use the range slider instead.
+
+Example of a default slider in context
+
+Range slider
+
+The range slider allows users to select a range of values from the slider track. The range slider consists of a label and two number inputs to type in values, which will determine the minimum and maximum range within the slider track. A user can manually input minimum and maximum values by clicking on the number input or moving the slider’s handles.
+
+Example of a range slider in context
+
+It is best practice to describe the range value in numbers and to not use a slider as a date selector. To select dates, use the date picker component.
+
+Do describe the range in numbers
+
+Do not use as a date selector
+
+Modifiers
+
+If the slider does not include number inputs to display the selected values, use a tooltip on hover, focus, and active to show the selected values.
+
+Using a tooltip to show the selected values when there are no number inputs
+
+Using a tooltip to show the selected values when there are no number inputs
+
+For sliders with custom value, show a tooltip on hover, focus, and active to display the selected value. These labels can vary by use case, the tooltip should help users understand their selection without needing a separate input.
+
+For example, between values of low and high, the tooltip should display low when the handle is near the start of the range, medium when it’s around the middle, and high when it approaches the end.
+
+Example shows custom values as low, medium, and high by using a tooltip to show the selected values
+
+Example shows custom values as low, medium, and high by using a tooltip to show the selected values
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

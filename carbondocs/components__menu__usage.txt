@@ -1,0 +1,175 @@
+Menu
+
+A menu is a list of interactive options that appears when users interact with an element or perform a specific action.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+A menu is a disclosure component that appears with a set of actions relevant to a specific control, interface area, data element, or application view. Typically, this context is determined by the user’s current selection prior to invoking the menu. Menus can be opened from components such as menu buttons or through right-clicking.
+
+This guidance will help you understand how to format, structure, and use the menu component effectively.
+
+In general, use menus to hide less frequently used or advanced options until users specifically need them. This keeps the interface clean and focused on essential elements.
+
+Context menus are triggered by a right-click interaction. A context menu is a defined list of options in a menu that appears above all other content on a page and is related to the selected content or element it was triggered from.
+
+Menus can speed up interactions for advanced users who are already familiar with the application. These users often rely on shortcuts and context-specific actions to work more efficiently.
+
+When submitting a form with a static list of options for users to choose from, or when filtering, use a dropdown instead of a menu.
+
+When many or complex inputs are used collectively, use a popover instead of a menu.
+
+Formatting
+
+Trigger: Elements that are triggered to display a list of available actions. These menu triggers can include a menu button, a combo button, and an overflow menu within menu buttons. Menus can also be opened when right-clicking on a page or specific element, like a column, or a row.
+
+Action item: A menu item that can be activated to apply its action on certain elements. This item can be accompanied by a submenu indicator or keyboard shortcuts.
+
+Divider: A rule that indicates different sections within the menu.
+
+Submenu indicator: A caret icon that indicates a submenu.
+
+Keyboard shortcut: Certain action items may also have keyboard shortcuts.
+
+Menu: A container displays the open state and contains a list of actions that can be selected.
+
+Selected item: An item that can be selected. The selection can be single or multi-selected.
+
+Submenu: A nested level off of the primary level.
+
+Menu items come in four sizes: extra small, small, medium, and large. See more about size specifications on the style tab. When using a menu button trigger, the height of the menu item (singular) reflects the size of the button being used.
+
+Note Currently, Carbon does not support the extra-small size for buttons, only for rows or menu items. Therefore, this menu size cannot be utilized with menu button triggers. However, the extra-small menu size remains available for implementation in other contexts if needed.
+
+Do match the height of the menu buttons and the menu
+
+Do not mix the height of the menu buttons and the menu
+
+By default, the menu button and combo button follow the button structure style, and the menu maintains a minimum width of 160px to prevent a narrow appearance.
+
+Menu default width when both button label and menu option labels are short
+
+Menu default width when both button label and menu option labels are short
+
+If the menu item labels become longer, the menu button and combo button remain the same size, while the menu component can expand up to a maximum of 288px. Conversely, if the button labels become longer, the menu component should not appear narrower but should extend to match the width of the menu buttons.
+
+If you opt for fluid-width default buttons, both the menu button (or the combo button) and the menu should have the same width.
+
+Do use the minimum width
+
+Do not narrow the menu to fit with other elements
+
+Do match the width when the menu button or combo button label becomes longer
+
+Do not make the menu appear shorter than the menu button or combo buttons
+
+Ghost buttons only adhere to the button style. This is because enlarging the ghost button’s width to match the menu’s width would result in the caret appearing disconnected from its associated button, especially when the menu button is in its closed state.
+
+Do use default ghost button in all cases
+
+Do not use fluid ghost button in any cases
+
+By default, combo button, menu button, or overflow button remains positioned at the top, to the left or right side of the menu when it is open, depending on the available space and layout.
+
+Menu default width when both button label and menu item labels are short
+
+Menu default width when both button label and menu item labels are short
+
+Alternatively, open menus can be positioned at the bottom, to the left or right of its associated menu button trigger, depending on the available space and layout.
+
+Ensuring consistent alignment when combining single or multi-select items with non-select items will improve the menu’s readability.
+
+Do create a consistent alignment with unselected and selected items
+
+Do not create mixed alignments with unselected and selected items
+
+For RTL (right-to-left) languages, the entire menu is mirrored horizontally, including the direction of the caret and keyboard shortcuts.
+
+Content
+
+Consider using short and precise labels for menu items. However, when deciding to truncate long menu items, a browser rendered title tooltip will reveal the full text on hover.
+
+Tooltip helps clarify the truncated text
+
+To aid discoverability, arrange menu items in a meaningful sequence that aligns with the order of operations. To help users focus on the most relevant options, place the ones used most often at the top.
+
+When there is a significant amount of menu items, it’s advisable to group them into sections, separated by divider lines.
+
+Example shows how menu items are grouped into meaningful sections
+
+Example shows how menu items are grouped into meaningful sections
+
+Expansive lists of options in menus can overwhelm users. With context menu and overflow menu, keep the list length manageable by including no more than 12 items to help users scan through items easily without having to scroll. With menu buttons, keep the menu list smaller with under 5 items.
+
+Do consider including as few items as possible
+
+Do consider including as few items as possible
+
+Do not overload choices
+
+Do not overload choices
+
+A submenu is a menu item with the caret icon on the right, offering additional related commands. While submenus can help tidy up a context menu and make its options clearer, introducing multiple levels of submenus can make the user experience more complex and harder to navigate. Avoid multiple levels of nesting when it comes to submenus.
+
+When a term appears in more than two menu items in the same group, consider eliminating the recurring term in the submenu label to help people predict its content and scan easily.
+
+Do omit recurring term
+
+Do not repeat the same term from the submenu trigger
+
+For further content guidance, see Carbon’s content guidelines.
+
+Behaviors
+
+Menu items have seven states: enabled, hover, focus, focus and hover, danger hover, danger hover and focus, and disabled. Learn more about states on the style tab.
+
+Once the menu opens by clicking on a menu button trigger or right-clicking on an area, users can:
+
+Mouse interactions on menu
+
+Once the menu opens by pressing Return or Enter on the menu trigger, users can:
+
+Once the menu opens, the first option is highlighted. Users can then move through the list of options to activate or select one item at a time. Once users activate or select a menu item, the menu closes.
+
+Activating a menu item can trigger the following:
+
+Modifiers
+
+Divider lines serve the purpose of categorizing related actions into appropriate sections, while also distinguishing actions that might have a significant impact on the user’s data, such as deleting an app or service.
+
+A menu item can display related values, like a caret indicator for accessing a submenu or a keyboard shortcut linked to the action.
+
+Single-select or multi-select has the same visual with the checkmark in front of the menu item.
+
+A danger hover state can be applied to actions that could cause significant changes, such as delete.
+
+Related
+
+To understand how to use menus with other specific menu button triggers, see menu buttons.
+
+To understand how the menu component can be used differently from the dropdown component, see dropdown.
+
+The popover component is visually similar to menu, but is used for different purposes. See popover for more information.
+
+References
+
+Anna Kaley, Contextual Menus: Delivering Relevant Tools for Tasks (Nielsen Norman Group, 2019)
+
+Michael Villar, Building like it’s 1984: A comprehensive guide to creating intuitive context menus (Height, 2022)
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

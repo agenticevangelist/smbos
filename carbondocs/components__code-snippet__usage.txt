@@ -1,0 +1,77 @@
+Code snippet
+
+Code snippets are strings or small blocks of reusable code that can be copied and inserted in a code file.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+There are three different variants of code snippets to help cater to varied line length use cases—inline, single line, and multi-line.
+
+Formatting
+
+Code snippet containers should vertically align to the grid with other form components on a page.
+
+Note: If using an inline code snippet, the snippet will live within a body of text.
+
+Do align code snippet containers to the grid.
+
+Do not align code snippet text to the grid and hang the container.
+
+Content
+
+For further content guidance, see Carbon’s content guidelines.
+
+Universal behaviors
+
+Code snippets by default have a copy functionality that allows users to copy the provided code to their clipboard. The copy icon must be accompanied by a confirmation tooltip that states the successful action of copying an item to the clipboard. Having copy functionality is optional and can be removed if it’s not necessary for your use case.
+
+Interactions
+
+An inline code snippet can be copied by clicking anywhere on the snippet itself.
+
+A single line code snippet can be copied by clicking on the “copy” icon. The browser also provides an ability to manually highlight the text and choose “copy” from the context menu (right click).
+
+A multi-line code snippet can be copied by clicking on the copy icon or by manually highlighting the text and right clicking “copy”.
+
+For additional keyboard interactions, see the accessibility tab.
+
+Inline
+
+Use inline code snippets within bodies of text. Using code snippets inline helps create emphasis on important key words to copy and makes long bodies of text easier to scan. Refrain from having inline code snippets that extend to multiple lines.
+
+Single line
+
+Use single line code snippets for longer strings of code that can still be presented on one line.
+
+If the text in a single line code snippet is lengthy, the text overflows into a horizontal scroll.
+
+Multi-line
+
+Use multi-line code snippets for displaying multiple lines of code.
+
+A Show more ghost button can be added to a multi-line code snippet to show more or fewer lines of code. Use this functionality if your layout is tight on space.
+
+Alternatively, you can apply vertical scrolling to the code snippet if there are more than nine lines of code.
+
+Terminal commands are often longer strings and should only appear on one line. Apply horizontal scrolling to maintain the set width of the box for these longer strings.
+
+Modifiers
+
+Use the light prop modifier when using a code snippet on a background other than the UI background for that theme. The light prop changes the background color token of the code snippet from field-01 to field-02.
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

@@ -1,0 +1,99 @@
+Overview
+
+Components are one of the key building blocks of the design system. Their systematic reuse helps to create visual and functional consistency across products.
+
+Components
+
+Each component has been designed and coded to solve a specific UI problem, such as presenting a list of options, enabling submission of a form, providing feedback to the user, and so on. All of the components in Carbon have been designed to work harmoniously together, as parts of a greater whole.
+
+Additional components, maintained by the Carbon community, are available in Community assets.
+
+Accordion
+
+AI label
+
+Breadcrumb
+
+Button
+
+Checkbox
+
+Code snippet
+
+Contained list
+
+Content switcher
+
+Data table
+
+Date picker
+
+Dropdown
+
+File uploader
+
+Form
+
+Inline loading
+
+Link
+
+List
+
+Loading
+
+Menu
+
+Menu buttons
+
+Modal
+
+Multiselect
+
+Notification
+
+Number input
+
+Pagination
+
+Popover
+
+Progress bar
+
+Progress indicator
+
+Radio button
+
+Search
+
+Select
+
+Slider
+
+Structured list
+
+Tabs
+
+Tag
+
+Text input
+
+Tile
+
+Toggle
+
+Toggletip
+
+Tooltip
+
+Tree view
+
+UI shell
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

@@ -1,0 +1,45 @@
+Get started
+
+Welcome to Carbon! If you’re just starting out developing with Carbon, here’s a checklist of everything you need to get up and running.
+
+Overview
+
+Carbon accelerates your developer workflow by providing consistent, pre-built components. Instead of building and re-building basic elements, you’ll be able spend that time customizing products to address specific client use cases.
+
+When you hear people talking about Carbon, it’s important to know that Carbon is more than just one website or library.
+
+The following diagram shows the relationships among assets and guidance across IBM—from the foundations of Brand and the IBM Design Language, to the digital implementation in the Carbon Design System, which in turn provides the foundation for our products and web pages.
+
+Carbon is built on IBM Design Language, which defines the core foundations of our design system—like the grid, color tokens, and type tokens. Taking the time to explore the IBM Design Language site will give you a deeper understanding of the principles behind IBM’s design philosophy, helping you make more informed decisions in your product work.
+
+For developers, learning these foundational elements is a smart investment. When you learn to use foundational elements like the grid, colors tokens, and type tokens you will reduce the need for custom CSS, speed up implementation, and help maintain a consistent IBM brand experience across products—all while making future upgrades easier.
+
+Installation and setup
+
+The Carbon Design System is built with official support for React and Web Components. Community support exists for other frameworks like Angular, vanilla JS, Vue, Svelte, and Lightning Web Components. Head over to Frameworks for all the information you need to get started.
+
+In Developer resources, you’ll find Carbon tools, as well as our GitHub repos and Storybooks for your framework of choice.
+
+Additional guidance
+
+We offer tutorials in React using Next.js, with community contributed tutorials for Angular and Vue, to guide you in creating an app with the Carbon Design System. We’ll teach you the ins and outs of using Carbon components, and introduce web development best practices along the way.
+
+Connect with us
+
+For internal IBM only: If you have a question about any aspect of the frameworks or tools, you can reach out to us on Slack and use that as a way to connect with your fellow developers. Chances are someone has had a similar question to you and will jump in to help you out.
+
+And be sure to sign up for the latest Carbon news at #carbon-announcements.
+
+You can find out about Carbon’s latest changes and future plans on the Releases page.
+
+If you have questions, here are all the ways to contact us.
+
+Learn more about the benefits of using Carbon as a developer, and how Carbon benefits all members of a product team.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM

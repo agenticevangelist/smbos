@@ -1,0 +1,83 @@
+Select
+
+Select allows users to choose one option from a list of values.
+
+Select with AI label is now stable. This addition changes the visual appearance of the component and introduces an AI explainability feature when AI is present in the component. See the AI presence section for more details.
+
+Live demo
+
+This live demo contains only a preview of functionality and styles available for this component. View the full demo on Storybook for additional information such as its version, controls, and API documentation.
+
+For every latest release, Carbon runs tests on all components to meet the accessibility requirements. These different statuses report the work that Carbon has done in the back end. These tests appear only when the components are stable.
+
+Overview
+
+The select component collects user-provided information from a list of options. Selects are usually used in forms where a user submits data and chooses one option from a list.
+
+Use the select component inside a form where users are selecting from a list of options and submitting data.
+
+When the experience is mostly form-based.
+
+It is best practice not to use a select if there are fewer than three options for selection. In this case, use a radio button group instead.
+
+While the select and dropdown components look similar, they have different functions.
+
+A select presents a list of options from which the users can select only one item from that list. It works best in forms when users choose an option from the select list and submit data.
+
+A dropdown presents a list of options that users can select one or several options from that list. Dropdown options are used for taking an action, filtering, or sorting existing content.
+
+Another important difference between the two components is the underlying code. The select list appearance will be determined by the browser being used, while the dropdown list can be styled as needed.
+
+Example of a select list of options for data submission on the left versus a dropdown list of actionable options on the right.
+
+Example of a select list of options for data submission on the left versus a dropdown list of actionable options on the right.
+
+Default selects are used in forms with other components.
+
+Inline select is useful when you have multiple select fields within a form. Inline selects have less visual weight on a page because they are borderless.
+
+Formatting
+
+There are two styles of select inputs, default and fluid. They share the same functionality but look visually different, influencing where to use them.
+
+There are three default select height size for both variants: small, medium, and large. Supporting three different select sizes gives you more flexibility when structuring layouts. However, use a consistent size for all form components on the same page. For example, if you are using a medium size select also use the same size text inputs, buttons, and so on. When in doubt, use the default medium size height.
+
+In the fluid select, there is only one input height. The list height is controlled by the browser.
+
+There is no minimum or maximum width for a select. The width can be customized appropriately for its context.
+
+Content
+
+Concise labels for text and data inputs help users understand what information is being requested of them.
+
+If applicable, the list should be in alphabetical order or in increasing order relative to the content. Otherwise, the order of the select list should be based on the frequency of use.
+
+Universal behaviors
+
+The select has multiple interactive states for both default and inline variants: enabled, hover, selected, focus, open, error, warning, disabled, skeleton, and read-only.
+
+Users can open and close the list by clicking the chevron icon or clicking anywhere within the field. To select an option, the user can click anywhere inside an option list.
+
+Real-time validation helps to streamline the process of filling out a form. The error state is triggered if the data is invalid or a required field is left empty. The error state has three visual indicators to signify invalid content: a red border, an error icon indicator, and an error message.
+
+AI presence
+
+Select has a modification that takes on the AI visual styling when the AI label is present in the input. The AI variant functions the same as the normal version except with the addition of the AI label which is both a visual indicator and the trigger for the explainability popover.
+
+For more information on designing for AI, see the Carbon for AI guidelines.
+
+A select can toggle between the AI variant and the non-AI variant depending on the user’s interaction. If the user manually overrides the AI-suggested content then the input will change from the AI variant to the non-AI variant. Once edited, the user should still be able to switch back to the initially AI generated content via a revert to AI button.
+
+Related
+
+Feedback
+
+Help us improve this component by providing feedback, asking questions, and leaving any other comments on GitHub.
+
+Have questions? Email us
+at carbon@us.ibm.com
+or open an issue on GitHub.
+
+React Components version ^1.97.0
+Last updated 19 December 2025
+Copyright © 2026 IBM
