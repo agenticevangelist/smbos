@@ -22,6 +22,7 @@ import { Agents } from './Agents';
 import { ScheduledTasks } from './ScheduledTasks';
 import { Dashboard } from './Dashboard';
 import './AppShell.scss';
+import packageJson from '../package.json';
 
 export function AppShell() {
   const [activePage, setActivePage] = useState('dashboard');
@@ -35,6 +36,52 @@ export function AppShell() {
   const [isResizingRight, setIsResizingRight] = useState(false);
   const [leftSidebarWidth, setLeftSidebarWidth] = useState(280);
   const [isResizingLeft, setIsResizingLeft] = useState(false);
+
+  // Persistence: Load from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('smbos_theme');
+    if (savedTheme) setTheme(savedTheme as any);
+
+    const savedActivePage = localStorage.getItem('smbos_active_page');
+    if (savedActivePage) setActivePage(savedActivePage);
+
+    const savedLeftWidth = localStorage.getItem('smbos_left_sidebar_width');
+    if (savedLeftWidth) setLeftSidebarWidth(parseInt(savedLeftWidth, 10));
+
+    const savedRightWidth = localStorage.getItem('smbos_right_sidebar_width');
+    if (savedRightWidth) setRightSidebarWidth(parseInt(savedRightWidth, 10));
+
+    const savedLeftExpanded = localStorage.getItem('smbos_left_sidebar_expanded');
+    if (savedLeftExpanded !== null) setLeftSideNavExpanded(savedLeftExpanded === 'true');
+
+    const savedRightExpanded = localStorage.getItem('smbos_right_sidebar_expanded');
+    if (savedRightExpanded !== null) setRightSideNavExpanded(savedRightExpanded === 'true');
+  }, []);
+
+  // Persistence: Sync to localStorage
+  useEffect(() => {
+    localStorage.setItem('smbos_theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('smbos_active_page', activePage);
+  }, [activePage]);
+
+  useEffect(() => {
+    localStorage.setItem('smbos_left_sidebar_width', leftSidebarWidth.toString());
+  }, [leftSidebarWidth]);
+
+  useEffect(() => {
+    localStorage.setItem('smbos_right_sidebar_width', rightSidebarWidth.toString());
+  }, [rightSidebarWidth]);
+
+  useEffect(() => {
+    localStorage.setItem('smbos_left_sidebar_expanded', leftSideNavExpanded.toString());
+  }, [leftSideNavExpanded]);
+
+  useEffect(() => {
+    localStorage.setItem('smbos_right_sidebar_expanded', rightSideNavExpanded.toString());
+  }, [rightSideNavExpanded]);
 
   useEffect(() => {
     const fetchSkills = async () => {
@@ -180,7 +227,7 @@ export function AppShell() {
           </div>
           <div className="sidebar-footer" style={{ padding: '0 1rem', alignItems: 'center' }}>
             <div style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
-              SMBOS v1.0.0
+              SMBOS v{packageJson.version}
             </div>
           </div>
         </div>

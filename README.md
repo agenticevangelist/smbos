@@ -57,3 +57,11 @@ New tools should be contributed following the modular standard defined in [`smbo
 1.  Initialize environment variables in `.env.local`.
 2.  Install dependencies: `npm install`
 3.  Execute development server: `npm run dev`
+
+## 📖 Contributor Guidelines
+
+### Versioning & Commit Protocol
+To maintain strict synchronization between the platform state and the displayed metadata, all contributors (human and agent) MUST adhere to the following protocol:
+*   **Version Increment**: Every commit that modifies logic, schema, or UI must increment the `version` field in `package.json`.
+*   **Commit Documentation**: Every commit must include a concise but comprehensive note in the commit message describing the changes.
+*   **Dynamic Metadata**: The version displayed in the Explorer footer is linked directly to `package.json`. Failing to increment the version will result in desynchronized telemetry and debugging data.
