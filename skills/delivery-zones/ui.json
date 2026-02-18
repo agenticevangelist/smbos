@@ -1,0 +1,48 @@
+{
+  "id": "delivery-zones",
+  "name": "Delivery Zones",
+  "description": "Delivery zone and courier analytics",
+  "icon": "Map",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "zones", "label": "Zones", "inputs": ["zonesDateFrom", "zonesDateTo"] },
+    { "id": "couriers", "label": "Couriers", "inputs": ["courDateFrom", "courDateTo", "courSortBy", "courLimit"] },
+    { "id": "reference", "label": "Reference Data", "inputs": ["refType"] }
+  ],
+  "inputs": [
+    { "id": "zonesDateFrom", "label": "Date From", "type": "date" },
+    { "id": "zonesDateTo", "label": "Date To", "type": "date" },
+    { "id": "courDateFrom", "label": "Date From", "type": "date" },
+    { "id": "courDateTo", "label": "Date To", "type": "date" },
+    { "id": "courSortBy", "label": "Sort By", "type": "select", "default": "deliveries", "options": [
+      { "value": "deliveries", "text": "Deliveries" }, { "value": "name", "text": "Name" }
+    ]},
+    { "id": "courLimit", "label": "Limit", "type": "number", "min": 10, "max": 100, "default": 50 },
+    { "id": "refType", "label": "Data Type", "type": "select", "default": "cancel_causes", "options": [
+      { "value": "cancel_causes", "text": "Cancel Causes" }, { "value": "payment_types", "text": "Payment Types" }, { "value": "order_types", "text": "Order Types" }
+    ]}
+  ],
+  "api": {
+    "url": "/api/skills/delivery-zones/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "zonesDateFrom": "{{zonesDateFrom}}", "zonesDateTo": "{{zonesDateTo}}",
+      "courDateFrom": "{{courDateFrom}}", "courDateTo": "{{courDateTo}}", "courSortBy": "{{courSortBy}}", "courLimit": "{{courLimit}}",
+      "refType": "{{refType}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "id", "header": "ID" },
+      { "key": "name", "header": "Name" },
+      { "key": "minOrderSum", "header": "Min Order" },
+      { "key": "deliveryDuration", "header": "Duration" },
+      { "key": "deliveryPrice", "header": "Price" },
+      { "key": "isActive", "header": "Active", "type": "tag", "tagType": "status" },
+      { "key": "phone", "header": "Phone" },
+      { "key": "externalId", "header": "External ID" }
+    ]
+  }
+}

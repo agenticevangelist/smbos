@@ -1,0 +1,51 @@
+{
+  "id": "data-sync",
+  "name": "Data Sync",
+  "description": "Synchronize data from iiko and view sync logs",
+  "icon": "Renew",
+  "layout": "sections",
+  "sections": [
+    { "id": "actions", "title": "Sync Actions", "inputs": ["action", "fullSyncDays", "forceFullSync"] },
+    { "id": "logs", "title": "Sync Logs", "inputs": ["logsSource", "logsLimit"] }
+  ],
+  "inputs": [
+    { "id": "action", "label": "Action", "type": "select", "required": true, "default": "view_logs", "options": [
+      { "value": "view_logs", "text": "View Sync Logs" },
+      { "value": "sync_orders", "text": "Sync Orders (iiko)" },
+      { "value": "sync_reference", "text": "Sync Reference Data" },
+      { "value": "sync_customers", "text": "Sync Customers" },
+      { "value": "recalc_rfm", "text": "Recalculate RFM" }
+    ]},
+    { "id": "fullSyncDays", "label": "Sync Days Back", "type": "number", "min": 1, "max": 90, "default": 7, "helperText": "Number of days to sync" },
+    { "id": "forceFullSync", "label": "Force Full Sync", "type": "toggle", "default": false },
+    { "id": "logsSource", "label": "Source Filter", "type": "select", "default": "all", "options": [
+      { "value": "all", "text": "All" }, { "value": "iiko", "text": "iiko" }, { "value": "wolt", "text": "Wolt" }
+    ]},
+    { "id": "logsLimit", "label": "Log Entries", "type": "number", "min": 5, "max": 100, "default": 20 }
+  ],
+  "api": {
+    "url": "/api/skills/data-sync/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "action": "{{action}}", "fullSyncDays": "{{fullSyncDays}}", "forceFullSync": "{{forceFullSync}}",
+      "logsSource": "{{logsSource}}", "logsLimit": "{{logsLimit}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "id", "header": "ID" },
+      { "key": "source", "header": "Source", "type": "tag" },
+      { "key": "startedAt", "header": "Started" },
+      { "key": "finishedAt", "header": "Finished" },
+      { "key": "status", "header": "Status", "type": "tag", "tagType": "status" },
+      { "key": "ordersCreated", "header": "Created" },
+      { "key": "ordersUpdated", "header": "Updated" },
+      { "key": "error", "header": "Error" },
+      { "key": "synced", "header": "Synced Data" },
+      { "key": "created", "header": "New" },
+      { "key": "updated", "header": "Updated" }
+    ]
+  }
+}

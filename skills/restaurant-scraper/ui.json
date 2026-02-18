@@ -1,0 +1,129 @@
+{
+  "id": "restaurant-scraper",
+  "name": "Restaurant Scraper",
+  "description": "Scrape restaurant data from Wolt, Bolt, Glovo, and Yandex Food platforms",
+  "icon": "Restaurant",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "scrape", "label": "Scrape", "inputs": ["platform", "city", "fetchPhones", "maxResults"] },
+    { "id": "view", "label": "View Data", "inputs": ["viewPlatform", "viewCity", "limit"] }
+  ],
+  "inputs": [
+    {
+      "id": "platform",
+      "label": "Platform",
+      "type": "select",
+      "required": true,
+      "options": [
+        { "value": "wolt", "text": "Wolt" },
+        { "value": "bolt", "text": "Bolt Food" },
+        { "value": "glovo", "text": "Glovo" },
+        { "value": "yandex", "text": "Yandex Food" }
+      ]
+    },
+    {
+      "id": "city",
+      "label": "City",
+      "type": "select",
+      "default": "all",
+      "options": [
+        { "value": "all", "text": "All Cities" },
+        { "value": "tbilisi", "text": "Tbilisi" },
+        { "value": "batumi", "text": "Batumi" },
+        { "value": "kutaisi", "text": "Kutaisi" },
+        { "value": "rustavi", "text": "Rustavi" },
+        { "value": "gori", "text": "Gori" },
+        { "value": "zugdidi", "text": "Zugdidi" },
+        { "value": "poti", "text": "Poti" },
+        { "value": "kobuleti", "text": "Kobuleti" },
+        { "value": "telavi", "text": "Telavi" },
+        { "value": "mtskheta", "text": "Mtskheta" }
+      ]
+    },
+    {
+      "id": "fetchPhones",
+      "label": "Fetch Phone Numbers",
+      "type": "toggle",
+      "default": false,
+      "helperText": "Slower — fetches phone from restaurant pages (Wolt only)"
+    },
+    {
+      "id": "maxResults",
+      "label": "Max Results per City",
+      "type": "number",
+      "min": 10,
+      "max": 500,
+      "default": 100
+    },
+    {
+      "id": "viewPlatform",
+      "label": "Platform",
+      "type": "select",
+      "default": "wolt",
+      "options": [
+        { "value": "wolt", "text": "Wolt" },
+        { "value": "bolt", "text": "Bolt Food" },
+        { "value": "glovo", "text": "Glovo" },
+        { "value": "yandex", "text": "Yandex Food" }
+      ]
+    },
+    {
+      "id": "viewCity",
+      "label": "Filter by City",
+      "type": "text",
+      "placeholder": "Leave empty for all cities"
+    },
+    {
+      "id": "limit",
+      "label": "Results Limit",
+      "type": "number",
+      "min": 10,
+      "max": 1000,
+      "default": 100
+    }
+  ],
+  "api": {
+    "url": "/api/skills/restaurant-scraper/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "platform": "{{platform}}",
+      "city": "{{city}}",
+      "fetchPhones": "{{fetchPhones}}",
+      "maxResults": "{{maxResults}}",
+      "viewPlatform": "{{viewPlatform}}",
+      "viewCity": "{{viewCity}}",
+      "limit": "{{limit}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "restaurants",
+    "columns": [
+      { "key": "name", "header": "Name" },
+      { "key": "city", "header": "City" },
+      { "key": "rating", "header": "Rating", "type": "tag", "tagType": "rating" },
+      { "key": "phone", "header": "Phone" },
+      { "key": "address", "header": "Address" },
+      { "key": "deliveryTime", "header": "Delivery Time" },
+      { "key": "deliveryPrice", "header": "Delivery Price" }
+    ]
+  },
+  "filters": [
+    {
+      "id": "filterByPhone",
+      "label": "Has Phone Number",
+      "type": "checkbox",
+      "field": "phone"
+    },
+    {
+      "id": "ratingCondition",
+      "label": "Rating",
+      "type": "select",
+      "options": [
+        { "value": "all", "text": "All ratings" },
+        { "value": "good", "text": "Good (7+)" },
+        { "value": "bad", "text": "Below 7" }
+      ]
+    }
+  ]
+}

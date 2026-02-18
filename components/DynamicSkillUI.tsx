@@ -42,6 +42,7 @@ import {
   CodeSnippet,
 } from '@carbon/react';
 import { Search, Download, View, Table as TableIcon, List, Grid as GridIcon } from '@carbon/icons-react';
+import { skillEvents, type SkillEvent } from '@/lib/events/skillEvents';
 
 interface SkillUIConfig {
   id: string;
@@ -84,7 +85,7 @@ interface SkillUIConfig {
       header: string;
       type?: 'tag' | 'linkOrTag' | 'text' | 'code' | 'image';
       tagType?: 'rating' | 'status' | 'default' | 'blue' | 'green' | 'red' | 'gray';
-    }>;
+    }> | 'auto';
     card?: {
       titleKey: string;
       descriptionKey: string;
@@ -151,6 +152,20 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
     setResults([]);
     setError(null);
     setStatus('');
+  }, [skillId]);
+
+  // Listen for agent-triggered results via event bus
+  useEffect(() => {
+    const handler = (event: SkillEvent) => {
+      if (event.skillId === skillId && event.source === 'agent' && event.results) {
+        const resultsData = Array.isArray(event.results) ? event.results : [event.results];
+        setResults(resultsData);
+        setStatus(`Results from agent execution (${resultsData.length} items)`);
+        setTimeout(() => setStatus(''), 3000);
+      }
+    };
+    skillEvents.on('skill:completed', handler);
+    return () => skillEvents.off('skill:completed', handler);
   }, [skillId]);
 
   const handleInputChange = (id: string, value: any) => {
@@ -358,14 +373,30 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
     return value?.toString() || '';
   };
 
+  const getEffectiveColumns = () => {
+    if (config.outputs.columns === 'auto') {
+      if (filteredResults.length === 0) return [];
+      const firstRow = filteredResults[0];
+      return Object.keys(firstRow)
+        .filter(key => key !== 'id')
+        .map(key => ({
+          key,
+          header: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+        }));
+    }
+    return config.outputs.columns || [];
+  };
+
   const renderOutput = () => {
     if (results.length === 0) return null;
+
+    const effectiveColumns = getEffectiveColumns();
 
     switch (config.outputs.type) {
       case 'table':
         return (
           <Column lg={16}>
-            <DataTable rows={paginatedResults.map((r, i) => ({ ...r, id: r.id || i.toString() }))} headers={config.outputs.columns || []}>
+            <DataTable rows={paginatedResults.map((r, i) => ({ ...r, id: r.id?.toString() || i.toString() }))} headers={effectiveColumns}>
               {({ rows, headers, getHeaderProps, getRowProps, getTableProps }) => (
                 <TableContainer title="Results" description={`Found ${filteredResults.length} items`}>
                   <TableToolbar>
@@ -388,7 +419,7 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
                         return (
                           <TableRow key={key} {...rp}>
                             {row.cells.map((cell, j) => (
-                              <TableCell key={cell.id}>{renderCell(paginatedResults[i], config.outputs.columns![j])}</TableCell>
+                              <TableCell key={cell.id}>{renderCell(paginatedResults[i], effectiveColumns[j])}</TableCell>
                             ))}
                           </TableRow>
                         );

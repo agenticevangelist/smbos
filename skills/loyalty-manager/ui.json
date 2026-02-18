@@ -1,0 +1,52 @@
+{
+  "id": "loyalty-manager",
+  "name": "Loyalty Manager",
+  "description": "Loyalty program tracking and analytics",
+  "icon": "Star",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "programs", "label": "Programs", "inputs": ["isActive"] },
+    { "id": "analytics", "label": "Analytics", "inputs": ["analyticsDateFrom", "analyticsDateTo", "programId"] },
+    { "id": "transactions", "label": "Transactions", "inputs": ["txType", "txDateFrom", "txDateTo", "txCustomerId", "txLimit"] }
+  ],
+  "inputs": [
+    { "id": "isActive", "label": "Status", "type": "select", "default": "all", "options": [
+      { "value": "all", "text": "All" }, { "value": "true", "text": "Active" }, { "value": "false", "text": "Inactive" }
+    ]},
+    { "id": "analyticsDateFrom", "label": "Date From", "type": "date" },
+    { "id": "analyticsDateTo", "label": "Date To", "type": "date" },
+    { "id": "programId", "label": "Program ID", "type": "text", "placeholder": "Filter by program" },
+    { "id": "txType", "label": "Type", "type": "select", "default": "all", "options": [
+      { "value": "all", "text": "All" }, { "value": "earn", "text": "Earned" }, { "value": "redeem", "text": "Redeemed" }, { "value": "topup", "text": "Top-up" }
+    ]},
+    { "id": "txDateFrom", "label": "Date From", "type": "date" },
+    { "id": "txDateTo", "label": "Date To", "type": "date" },
+    { "id": "txCustomerId", "label": "Customer ID", "type": "text", "placeholder": "Filter by customer" },
+    { "id": "txLimit", "label": "Limit", "type": "number", "min": 10, "max": 500, "default": 100 }
+  ],
+  "api": {
+    "url": "/api/skills/loyalty-manager/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "isActive": "{{isActive}}", "analyticsDateFrom": "{{analyticsDateFrom}}", "analyticsDateTo": "{{analyticsDateTo}}",
+      "programId": "{{programId}}", "txType": "{{txType}}", "txDateFrom": "{{txDateFrom}}", "txDateTo": "{{txDateTo}}",
+      "txCustomerId": "{{txCustomerId}}", "txLimit": "{{txLimit}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "id", "header": "ID" },
+      { "key": "name", "header": "Name" },
+      { "key": "type", "header": "Type", "type": "tag" },
+      { "key": "isActive", "header": "Active", "type": "tag", "tagType": "status" },
+      { "key": "metric", "header": "Metric" },
+      { "key": "value", "header": "Value" },
+      { "key": "amount", "header": "Amount" },
+      { "key": "balance", "header": "Balance" },
+      { "key": "date", "header": "Date" },
+      { "key": "description", "header": "Description" }
+    ]
+  }
+}

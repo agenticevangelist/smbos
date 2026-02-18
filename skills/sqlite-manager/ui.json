@@ -1,0 +1,66 @@
+{
+  "id": "sqlite-manager",
+  "name": "SQLite Manager",
+  "description": "Run SQL queries and manage local SQLite databases",
+  "icon": "DataBase",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "query", "label": "Query", "inputs": ["database", "query"] },
+    { "id": "tables", "label": "Tables", "inputs": ["database_tables", "action", "tableName"] }
+  ],
+  "inputs": [
+    {
+      "id": "database",
+      "label": "Database",
+      "type": "text",
+      "placeholder": "smbos.db",
+      "default": "smbos.db",
+      "helperText": "Database file name (stored in skills/sqlite-manager/data/)"
+    },
+    {
+      "id": "query",
+      "label": "SQL Query",
+      "type": "textarea",
+      "placeholder": "SELECT * FROM my_table LIMIT 10",
+      "required": true
+    },
+    {
+      "id": "database_tables",
+      "label": "Database",
+      "type": "text",
+      "placeholder": "smbos.db",
+      "default": "smbos.db"
+    },
+    {
+      "id": "action",
+      "label": "Action",
+      "type": "select",
+      "default": "list_tables",
+      "options": [
+        { "value": "list_tables", "text": "List all tables" },
+        { "value": "describe_table", "text": "Describe table structure" }
+      ]
+    },
+    {
+      "id": "tableName",
+      "label": "Table Name",
+      "type": "text",
+      "placeholder": "e.g., leads"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/sqlite-manager/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "database": "{{database}}",
+      "query": "{{query}}",
+      "action": "{{action}}",
+      "tableName": "{{tableName}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": "auto"
+  }
+}

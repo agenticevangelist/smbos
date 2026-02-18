@@ -1,0 +1,42 @@
+{
+  "id": "csv-exporter",
+  "name": "CSV Exporter",
+  "description": "Export JSON data to CSV format for download",
+  "icon": "Download",
+  "inputs": [
+    {
+      "id": "data",
+      "label": "JSON Data",
+      "type": "textarea",
+      "placeholder": "[{\"name\": \"John\", \"email\": \"john@example.com\"}]",
+      "required": true,
+      "helperText": "Paste a JSON array of objects"
+    },
+    {
+      "id": "filename",
+      "label": "Filename",
+      "type": "text",
+      "placeholder": "export.csv",
+      "default": "export.csv"
+    },
+    {
+      "id": "columns",
+      "label": "Columns (comma-separated)",
+      "type": "text",
+      "placeholder": "name,email,phone",
+      "helperText": "Leave empty to include all columns"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/csv-exporter/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "data": "{{data}}",
+      "filename": "{{filename}}",
+      "columns": "{{columns}}"
+    }
+  },
+  "outputs": {
+    "type": "json"
+  }
+}

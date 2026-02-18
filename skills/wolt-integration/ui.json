@@ -1,0 +1,118 @@
+{
+  "id": "wolt-integration",
+  "name": "Wolt Integration",
+  "description": "Wolt venue management, order actions, menu, and analytics",
+  "icon": "Integration",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "venue", "label": "Venue Status", "inputs": ["venueAction", "online", "until"] },
+    { "id": "orders", "label": "Orders", "inputs": ["orderAction", "orderId", "rejectReason"] },
+    { "id": "menu", "label": "Menu & Inventory", "inputs": ["menuAction", "menuItems"] },
+    { "id": "analytics", "label": "Analytics", "inputs": ["analyticsDateFrom", "analyticsDateTo"] }
+  ],
+  "inputs": [
+    {
+      "id": "venueAction",
+      "label": "Action",
+      "type": "select",
+      "default": "venue_status",
+      "options": [
+        { "value": "venue_status", "text": "Get Venue Status" },
+        { "value": "venue_summary", "text": "Get Venue Summary" },
+        { "value": "set_online", "text": "Set Online/Offline" },
+        { "value": "opening_times", "text": "Get Opening Times" },
+        { "value": "delivery_provider", "text": "Delivery Provider Info" }
+      ]
+    },
+    {
+      "id": "online",
+      "label": "Online",
+      "type": "toggle",
+      "default": true
+    },
+    {
+      "id": "until",
+      "label": "Offline Until",
+      "type": "text",
+      "placeholder": "ISO datetime (optional)"
+    },
+    {
+      "id": "orderAction",
+      "label": "Action",
+      "type": "select",
+      "default": "get_order",
+      "options": [
+        { "value": "get_order", "text": "Get Order Details" },
+        { "value": "accept_order", "text": "Accept Order" },
+        { "value": "reject_order", "text": "Reject Order" },
+        { "value": "ready_order", "text": "Mark Ready" },
+        { "value": "delivered_order", "text": "Mark Delivered" }
+      ]
+    },
+    {
+      "id": "orderId",
+      "label": "Order ID",
+      "type": "text",
+      "placeholder": "Wolt order ID",
+      "required": true
+    },
+    {
+      "id": "rejectReason",
+      "label": "Reject Reason",
+      "type": "select",
+      "default": "MERCHANT_REJECTED",
+      "options": [
+        { "value": "MERCHANT_REJECTED", "text": "Merchant Rejected" },
+        { "value": "OUT_OF_STOCK", "text": "Out of Stock" },
+        { "value": "CLOSING_SOON", "text": "Closing Soon" },
+        { "value": "TOO_BUSY", "text": "Too Busy" }
+      ]
+    },
+    {
+      "id": "menuAction",
+      "label": "Action",
+      "type": "select",
+      "default": "get_menu",
+      "options": [
+        { "value": "get_menu", "text": "Get Current Menu" },
+        { "value": "update_menu", "text": "Update Menu" },
+        { "value": "update_inventory", "text": "Update Inventory" }
+      ]
+    },
+    {
+      "id": "menuItems",
+      "label": "Items (JSON)",
+      "type": "textarea",
+      "placeholder": "[{\"item_id\": \"...\", \"available\": true, \"quantity\": 10}]"
+    },
+    {
+      "id": "analyticsDateFrom",
+      "label": "Date From",
+      "type": "date"
+    },
+    {
+      "id": "analyticsDateTo",
+      "label": "Date To",
+      "type": "date"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/wolt-integration/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "venueAction": "{{venueAction}}",
+      "online": "{{online}}",
+      "until": "{{until}}",
+      "orderAction": "{{orderAction}}",
+      "orderId": "{{orderId}}",
+      "rejectReason": "{{rejectReason}}",
+      "menuAction": "{{menuAction}}",
+      "menuItems": "{{menuItems}}",
+      "analyticsDateFrom": "{{analyticsDateFrom}}",
+      "analyticsDateTo": "{{analyticsDateTo}}"
+    }
+  },
+  "outputs": {
+    "type": "json"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "id": "order-manager",
+  "name": "Order Manager",
+  "description": "List, filter, and export delivery orders",
+  "icon": "ShoppingCart",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "list", "label": "Orders", "inputs": ["dateFrom", "dateTo", "source", "status", "search", "sortBy", "limit"] },
+    { "id": "detail", "label": "Order Detail", "inputs": ["orderId"] },
+    { "id": "export", "label": "Export CSV", "inputs": ["exportDateFrom", "exportDateTo", "exportSource"] }
+  ],
+  "inputs": [
+    { "id": "dateFrom", "label": "Date From", "type": "date" },
+    { "id": "dateTo", "label": "Date To", "type": "date" },
+    { "id": "source", "label": "Source", "type": "select", "default": "all", "options": [
+      { "value": "all", "text": "All" }, { "value": "iiko", "text": "iiko" }, { "value": "wolt", "text": "Wolt" }
+    ]},
+    { "id": "status", "label": "Status", "type": "select", "default": "all", "options": [
+      { "value": "all", "text": "All" }, { "value": "completed", "text": "Completed" }, { "value": "cancelled", "text": "Cancelled" }, { "value": "pending", "text": "Pending" }
+    ]},
+    { "id": "search", "label": "Search", "type": "text", "placeholder": "Customer name or order number" },
+    { "id": "sortBy", "label": "Sort By", "type": "select", "default": "closed_at", "options": [
+      { "value": "closed_at", "text": "Date" }, { "value": "total_sum", "text": "Amount" }
+    ]},
+    { "id": "limit", "label": "Limit", "type": "number", "min": 10, "max": 200, "default": 50 },
+    { "id": "orderId", "label": "Order ID", "type": "text", "placeholder": "Enter order UUID" },
+    { "id": "exportDateFrom", "label": "Date From", "type": "date" },
+    { "id": "exportDateTo", "label": "Date To", "type": "date" },
+    { "id": "exportSource", "label": "Source", "type": "select", "default": "all", "options": [
+      { "value": "all", "text": "All" }, { "value": "iiko", "text": "iiko" }, { "value": "wolt", "text": "Wolt" }
+    ]}
+  ],
+  "api": {
+    "url": "/api/skills/order-manager/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "dateFrom": "{{dateFrom}}", "dateTo": "{{dateTo}}", "source": "{{source}}", "status": "{{status}}",
+      "search": "{{search}}", "sortBy": "{{sortBy}}", "limit": "{{limit}}", "orderId": "{{orderId}}",
+      "exportDateFrom": "{{exportDateFrom}}", "exportDateTo": "{{exportDateTo}}", "exportSource": "{{exportSource}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "orderId", "header": "Order ID" },
+      { "key": "source", "header": "Source", "type": "tag" },
+      { "key": "restaurant", "header": "Restaurant" },
+      { "key": "date", "header": "Date" },
+      { "key": "total", "header": "Total" },
+      { "key": "status", "header": "Status", "type": "tag", "tagType": "status" },
+      { "key": "customer", "header": "Customer" },
+      { "key": "orderType", "header": "Type" },
+      { "key": "name", "header": "Item Name" },
+      { "key": "quantity", "header": "Qty" },
+      { "key": "price", "header": "Price" },
+      { "key": "sum", "header": "Sum" }
+    ]
+  },
+  "filters": [
+    {
+      "id": "filterBySource",
+      "label": "Source",
+      "type": "select",
+      "field": "source",
+      "options": [
+        { "value": "all", "text": "All" },
+        { "value": "iiko", "text": "iiko" },
+        { "value": "wolt", "text": "Wolt" }
+      ]
+    }
+  ]
+}

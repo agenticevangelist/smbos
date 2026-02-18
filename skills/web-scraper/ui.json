@@ -1,0 +1,41 @@
+{
+  "id": "web-scraper",
+  "name": "Web Scraper",
+  "description": "Scrape and extract content from web pages",
+  "icon": "Globe",
+  "inputs": [
+    {
+      "id": "url",
+      "label": "URL",
+      "type": "text",
+      "placeholder": "https://example.com",
+      "required": true
+    },
+    {
+      "id": "extractMode",
+      "label": "Extract",
+      "type": "select",
+      "default": "links",
+      "options": [
+        { "value": "links", "text": "Links (a href)" },
+        { "value": "headings", "text": "Headings (h1-h6)" },
+        { "value": "text", "text": "Text content" },
+        { "value": "images", "text": "Images (img src)" },
+        { "value": "meta", "text": "Meta tags" }
+      ]
+    }
+  ],
+  "api": {
+    "url": "/api/skills/web-scraper/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "url": "{{url}}",
+      "extractMode": "{{extractMode}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "items",
+    "columns": "auto"
+  }
+}

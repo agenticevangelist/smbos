@@ -1,0 +1,64 @@
+{
+  "id": "syrve-analytics",
+  "name": "Syrve Analytics",
+  "description": "iiko Server analytics — delivery, products, peak hours, aggregators",
+  "icon": "ChartLineData",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "delivery", "label": "Delivery Analytics", "inputs": ["deliveryDateFrom", "deliveryDateTo", "deliveryDays"] },
+    { "id": "products", "label": "Products Ranking", "inputs": ["prodDateFrom", "prodDateTo", "prodDays", "prodSortBy", "prodLimit"] },
+    { "id": "peakhours", "label": "Peak Hours", "inputs": ["peakDateFrom", "peakDateTo", "peakDays"] },
+    { "id": "comparison", "label": "Aggregator Comparison", "inputs": ["compAction"] }
+  ],
+  "inputs": [
+    { "id": "deliveryDateFrom", "label": "Date From", "type": "date" },
+    { "id": "deliveryDateTo", "label": "Date To", "type": "date" },
+    { "id": "deliveryDays", "label": "Days Back", "type": "number", "min": 1, "max": 90, "default": 30 },
+    { "id": "prodDateFrom", "label": "Date From", "type": "date" },
+    { "id": "prodDateTo", "label": "Date To", "type": "date" },
+    { "id": "prodDays", "label": "Days Back", "type": "number", "min": 1, "max": 90, "default": 30 },
+    { "id": "prodSortBy", "label": "Sort By", "type": "select", "default": "revenue", "options": [
+      { "value": "revenue", "text": "Revenue" },
+      { "value": "portions", "text": "Portions Sold" },
+      { "value": "orders", "text": "Order Count" }
+    ]},
+    { "id": "prodLimit", "label": "Top N Products", "type": "number", "min": 5, "max": 100, "default": 20 },
+    { "id": "peakDateFrom", "label": "Date From", "type": "date" },
+    { "id": "peakDateTo", "label": "Date To", "type": "date" },
+    { "id": "peakDays", "label": "Days Back", "type": "number", "min": 1, "max": 90, "default": 30 },
+    { "id": "compAction", "label": "Action", "type": "select", "default": "compare", "options": [
+      { "value": "compare", "text": "Compare Aggregators" },
+      { "value": "health", "text": "Check Connection" }
+    ]}
+  ],
+  "api": {
+    "url": "/api/skills/syrve-analytics/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "deliveryDateFrom": "{{deliveryDateFrom}}", "deliveryDateTo": "{{deliveryDateTo}}", "deliveryDays": "{{deliveryDays}}",
+      "prodDateFrom": "{{prodDateFrom}}", "prodDateTo": "{{prodDateTo}}", "prodDays": "{{prodDays}}", "prodSortBy": "{{prodSortBy}}", "prodLimit": "{{prodLimit}}",
+      "peakDateFrom": "{{peakDateFrom}}", "peakDateTo": "{{peakDateTo}}", "peakDays": "{{peakDays}}",
+      "compAction": "{{compAction}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "metric", "header": "Metric" },
+      { "key": "value", "header": "Value" },
+      { "key": "rank", "header": "#" },
+      { "key": "name", "header": "Name" },
+      { "key": "portions", "header": "Portions" },
+      { "key": "revenue", "header": "Revenue" },
+      { "key": "orders", "header": "Orders" },
+      { "key": "abcCategory", "header": "ABC", "type": "tag" },
+      { "key": "averagePrice", "header": "Avg Price" },
+      { "key": "hour", "header": "Hour" },
+      { "key": "percentage", "header": "%" },
+      { "key": "aggregator", "header": "Aggregator" },
+      { "key": "averageCheck", "header": "Avg Check" },
+      { "key": "share", "header": "Share" }
+    ]
+  }
+}

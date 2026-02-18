@@ -1,0 +1,81 @@
+{
+  "id": "cron-scheduler",
+  "name": "Cron Scheduler",
+  "description": "Schedule skills to run automatically on a cron schedule",
+  "icon": "Time",
+  "layout": "sections",
+  "sections": [
+    { "id": "task", "title": "Task Configuration", "inputs": ["action", "skillId", "params", "label"] },
+    { "id": "schedule", "title": "Schedule", "inputs": ["cronExpression", "enabled"] },
+    { "id": "manage", "title": "Manage", "inputs": ["scheduleId"] }
+  ],
+  "inputs": [
+    {
+      "id": "action",
+      "label": "Action",
+      "type": "select",
+      "default": "list",
+      "required": true,
+      "options": [
+        { "value": "list", "text": "List schedules" },
+        { "value": "create", "text": "Create schedule" },
+        { "value": "delete", "text": "Delete schedule" }
+      ]
+    },
+    {
+      "id": "skillId",
+      "label": "Skill to schedule",
+      "type": "text",
+      "placeholder": "e.g., google-maps-leads"
+    },
+    {
+      "id": "params",
+      "label": "Skill Parameters (JSON)",
+      "type": "textarea",
+      "placeholder": "{\"query\": \"restaurants\", \"location\": \"Yerevan\"}"
+    },
+    {
+      "id": "label",
+      "label": "Schedule Name",
+      "type": "text",
+      "placeholder": "e.g., Daily lead search"
+    },
+    {
+      "id": "cronExpression",
+      "label": "Cron Expression",
+      "type": "text",
+      "placeholder": "0 9 * * 1-5",
+      "helperText": "Minute Hour Day Month Weekday"
+    },
+    {
+      "id": "enabled",
+      "label": "Enabled",
+      "type": "toggle",
+      "default": true
+    },
+    {
+      "id": "scheduleId",
+      "label": "Schedule ID (for delete)",
+      "type": "text",
+      "placeholder": "Enter schedule ID to delete"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/cron-scheduler/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "action": "{{action}}",
+      "skillId": "{{skillId}}",
+      "params": "{{params}}",
+      "label": "{{label}}",
+      "cronExpression": "{{cronExpression}}",
+      "enabled": "{{enabled}}",
+      "scheduleId": "{{scheduleId}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": "auto"
+  }
+}

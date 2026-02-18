@@ -9,24 +9,22 @@ import {
   HeaderGlobalAction,
   Content,
   SkipToContent,
-  TextArea,
-  Button,
-  InlineLoading,
-  HeaderMenuButton,
   ContainedList,
   ContainedListItem,
 } from '@carbon/react';
-import { Search, Notification, UserAvatar, Chat, Send, Asleep, Light, Group, Events, Activity, Home, Menu } from '@carbon/icons-react';
+import { Search, Notification, UserAvatar, Chat, Asleep, Light, Group, Events, Activity, Home, Menu, Settings, Close } from '@carbon/icons-react';
 import { DynamicSkillUI } from './DynamicSkillUI';
 import { Agents } from './Agents';
 import { ScheduledTasks } from './ScheduledTasks';
 import { Dashboard } from './Dashboard';
+import { SkillsManagement } from './SkillsManagement';
+import { AgentChat } from './AgentChat';
 import './AppShell.scss';
 import packageJson from '../package.json';
 
 export function AppShell() {
   const [activePage, setActivePage] = useState('dashboard');
-  const [skills, setSkills] = useState<Array<{ id: string, name: string, icon: string }>>([]);
+  const [skills, setSkills] = useState<Array<{ id: string, name: string, description: string, icon: string, hidden: boolean }>>([]);
   const [theme, setTheme] = useState<'white' | 'g100'>('white');
   const [rightSideNavExpanded, setRightSideNavExpanded] = useState(true);
   const [leftSideNavExpanded, setLeftSideNavExpanded] = useState(true);
@@ -83,16 +81,17 @@ export function AppShell() {
     localStorage.setItem('smbos_right_sidebar_expanded', rightSideNavExpanded.toString());
   }, [rightSideNavExpanded]);
 
+  const fetchSkills = async () => {
+    try {
+      const response = await fetch('/api/skills');
+      const data = await response.json();
+      setSkills(data);
+    } catch (e) {
+      console.error('Failed to fetch skills');
+    }
+  };
+
   useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        const response = await fetch('/api/skills');
-        const data = await response.json();
-        setSkills(data);
-      } catch (e) {
-        console.error('Failed to fetch skills');
-      }
-    };
     fetchSkills();
   }, []);
 
@@ -137,36 +136,49 @@ export function AppShell() {
     };
   }, [isResizingRight, isResizingLeft]);
 
-  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant', content: string, timestamp: string }>>([]);
-  const [chatInput, setChatInput] = useState('');
-  const [isAiThinking, setIsAiThinking] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleSendMessage = () => {
-    if (!chatInput.trim()) return;
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setLeftSideNavExpanded(false);
+        setRightSideNavExpanded(false);
+      }
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setChatMessages(prev => [...prev, { role: 'user', content: chatInput, timestamp }]);
-    setChatInput('');
-    setIsAiThinking(true);
-
-    setTimeout(() => {
-      const aiTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setChatMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'I have analyzed your request. I can help you automate this task using the tools available.',
-        timestamp: aiTimestamp
-      }]);
-      setIsAiThinking(false);
-    }, 1000);
+  const handleNavigation = (page: string) => {
+    setActivePage(page);
+    if (isMobile) {
+      setIsMobileMenuOpen(false);
+      setLeftSideNavExpanded(false);
+    }
   };
 
   return (
     <Theme theme={theme} className="app-shell">
 
+      {/* Mobile overlay backdrop */}
+      {isMobile && (isMobileMenuOpen || rightSideNavExpanded) && (
+        <div
+          className="mobile-overlay"
+          onClick={() => {
+            setIsMobileMenuOpen(false);
+            setRightSideNavExpanded(false);
+          }}
+        />
+      )}
+
       {/* Left Sidebar */}
       <div
-        className={`left-sidebar ${leftSideNavExpanded ? 'expanded' : 'collapsed'}`}
-        style={{
+        className={`left-sidebar ${isMobile ? (isMobileMenuOpen ? 'expanded mobile-drawer' : 'collapsed') : (leftSideNavExpanded ? 'expanded' : 'collapsed')}`}
+        style={isMobile ? undefined : {
           width: leftSideNavExpanded ? leftSidebarWidth : 0,
           flex: leftSideNavExpanded ? `0 0 ${leftSidebarWidth}px` : undefined,
           transition: isResizingLeft ? 'none' : 'width 0.2s, flex 0.2s'
@@ -175,11 +187,16 @@ export function AppShell() {
         <div className="panel-container">
           <div className="panel-header">
             <h3>Explorer</h3>
+            {isMobile && (
+              <button className="mobile-close-btn" onClick={() => setIsMobileMenuOpen(false)}>
+                <Close size={20} />
+              </button>
+            )}
           </div>
           <div className="sidebar-content">
             <ContainedList label="General" kind="on-page">
               <ContainedListItem
-                onClick={() => setActivePage('dashboard')}
+                onClick={() => handleNavigation('dashboard')}
                 className={activePage === 'dashboard' ? 'active-item' : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -190,10 +207,10 @@ export function AppShell() {
             </ContainedList>
 
             <ContainedList label="Skills" kind="on-page">
-              {skills.map((skill) => (
+              {skills.filter(s => !s.hidden).map((skill) => (
                 <ContainedListItem
                   key={skill.id}
-                  onClick={() => setActivePage(skill.id)}
+                  onClick={() => handleNavigation(skill.id)}
                   className={activePage === skill.id ? 'active-item' : ''}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -206,16 +223,16 @@ export function AppShell() {
 
             <ContainedList label="Management" kind="on-page">
               <ContainedListItem
-                onClick={() => setActivePage('agents')}
+                onClick={() => handleNavigation('agents')}
                 className={activePage === 'agents' ? 'active-item' : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Group size={16} />
-                  Manage Agents
+                  Agents
                 </div>
               </ContainedListItem>
               <ContainedListItem
-                onClick={() => setActivePage('tasks')}
+                onClick={() => handleNavigation('tasks')}
                 className={activePage === 'tasks' ? 'active-item' : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -234,7 +251,7 @@ export function AppShell() {
       </div>
 
       {/* Left Resizer */}
-      {leftSideNavExpanded && (
+      {!isMobile && leftSideNavExpanded && (
         <div
           className={`resizer ${isResizingLeft ? 'resizing' : ''}`}
           onMouseDown={startResizingLeft}
@@ -245,19 +262,34 @@ export function AppShell() {
       <div className="main-area">
         <Header aria-label="SMBOS">
           <SkipToContent />
-          <HeaderName href="#" prefix="Smart">
+          <HeaderGlobalAction
+            aria-label={isMobile ? (isMobileMenuOpen ? 'Close menu' : 'Open menu') : (leftSideNavExpanded ? 'Close navigation' : 'Open navigation')}
+            onClick={() => {
+              if (isMobile) {
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              } else {
+                setLeftSideNavExpanded(!leftSideNavExpanded);
+              }
+            }}
+            isActive={isMobile ? isMobileMenuOpen : leftSideNavExpanded}
+            className="header-menu-btn"
+          >
+            <Menu size={20} />
+          </HeaderGlobalAction>
+          <HeaderName href="#" prefix="Smart" onClick={(e) => { e.preventDefault(); handleNavigation('dashboard'); }}>
             SMBOS
           </HeaderName>
           <HeaderGlobalBar>
-            <HeaderGlobalAction
-              aria-label={leftSideNavExpanded ? 'Close navigation' : 'Open navigation'}
-              onClick={() => setLeftSideNavExpanded(!leftSideNavExpanded)}
-              isActive={leftSideNavExpanded}
-            >
-              <Menu size={20} />
-            </HeaderGlobalAction>
             <HeaderGlobalAction aria-label="Search">
               <Search size={20} />
+            </HeaderGlobalAction>
+            <HeaderGlobalAction
+              aria-label="Manage Skills"
+              onClick={() => handleNavigation('skills-management')}
+              isActive={activePage === 'skills-management'}
+              tooltipAlignment="end"
+            >
+              <Settings size={20} />
             </HeaderGlobalAction>
             <HeaderGlobalAction aria-label="Notifications">
               <Notification size={20} />
@@ -283,7 +315,9 @@ export function AppShell() {
 
         <Content id="main-content">
           {activePage === 'dashboard' ? (
-              <Dashboard onNavigate={setActivePage} />
+              <Dashboard onNavigate={handleNavigation} />
+          ) : activePage === 'skills-management' ? (
+              <SkillsManagement onSkillsChanged={fetchSkills} />
           ) : activePage === 'agents' ? (
               <Agents />
           ) : activePage === 'tasks' ? (
@@ -295,7 +329,7 @@ export function AppShell() {
       </div>
 
       {/* Right Resizer */}
-      {rightSideNavExpanded && (
+      {!isMobile && rightSideNavExpanded && (
         <div
           className={`resizer ${isResizingRight ? 'resizing' : ''}`}
           onMouseDown={startResizingRight}
@@ -304,8 +338,8 @@ export function AppShell() {
 
       {/* Right Sidebar - Chat */}
       <div
-        className={`right-sidebar ${rightSideNavExpanded ? 'expanded' : 'collapsed'}`}
-        style={{
+        className={`right-sidebar ${isMobile ? (rightSideNavExpanded ? 'expanded mobile-drawer mobile-drawer-right' : 'collapsed') : (rightSideNavExpanded ? 'expanded' : 'collapsed')}`}
+        style={isMobile ? undefined : {
           width: rightSideNavExpanded ? rightSidebarWidth : 0,
           flex: rightSideNavExpanded ? `0 0 ${rightSidebarWidth}px` : undefined,
           transition: isResizingRight ? 'none' : 'width 0.2s, flex 0.2s'
@@ -314,65 +348,14 @@ export function AppShell() {
         <div className="panel-container">
           <div className="panel-header">
             <h3>SMBOS Agent</h3>
+            {isMobile && (
+              <button className="mobile-close-btn" onClick={() => setRightSideNavExpanded(false)}>
+                <Close size={20} />
+              </button>
+            )}
           </div>
 
-          <div className="sidebar-content">
-            <div className="chat-messages">
-              {chatMessages.length === 0 && !isAiThinking ? (
-                <div className="chat-empty">
-                  <Chat size={48} />
-                  <p>How can I help you today?</p>
-                </div>
-              ) : (
-                <>
-                  {chatMessages.map((msg, idx) => (
-                    <div key={idx} className={`chat-message ${msg.role}`}>
-                      <div className="message-content">{msg.content}</div>
-                      <div className="message-meta">
-                        <span className="message-time">{msg.timestamp}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {isAiThinking && (
-                    <div className="loading-indicator">
-                      <InlineLoading description="Analyzing context..." />
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="sidebar-footer">
-            <div className="chat-input-area">
-              <div className="left-input-container">
-                <TextArea
-                  id="chat-input"
-                  labelText=""
-                  placeholder="Ask SMBOS Agent..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  rows={1}
-                />
-              </div>
-              <div className="right-button-container">
-                <Button
-                  renderIcon={Send}
-                  iconDescription="Send"
-                  hasIconOnly
-                  size='md'
-                  onClick={handleSendMessage}
-                  disabled={!chatInput.trim()}
-                />
-              </div>
-            </div>
-          </div>
+          <AgentChat />
         </div>
       </div>
     </Theme>
