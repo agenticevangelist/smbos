@@ -33,6 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# agent secrets
+agents/*/.env
+
+# agent runtime (NanoClaw workspace)
+agents/*/.runtime/
+
 # vercel
 .vercel
 

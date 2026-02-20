@@ -54,7 +54,7 @@ export function SkillsManagement({ onSkillsChanged }: SkillsManagementProps) {
         setSkills(data);
       }
     } catch (error) {
-      console.error('Failed to fetch skills', error);
+      // silently handle — UI already shows empty state
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +78,7 @@ export function SkillsManagement({ onSkillsChanged }: SkillsManagementProps) {
         onSkillsChanged?.();
       }
     } catch (error) {
-      console.error('Failed to toggle skill visibility', error);
+      // silently handle — toggle stays in previous state
     }
   };
 
@@ -117,7 +117,7 @@ export function SkillsManagement({ onSkillsChanged }: SkillsManagementProps) {
         setEditSkill(null);
       }
     } catch (error) {
-      console.error('Failed to update skill', error);
+      // silently handle — modal stays open for retry
     }
   };
 

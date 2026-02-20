@@ -1,0 +1,36 @@
+=== Container Run Log ===
+Timestamp: 2026-02-20T00:12:46.046Z
+Group: Web Chat
+IsMain: false
+Duration: 1581ms
+Exit Code: 2
+Stdout Truncated: false
+Stderr Truncated: false
+
+=== Input ===
+{
+  "prompt": "<messages>\n<message sender=\"User\" time=\"2026-02-20T00:12:44.462Z\">hey</message>\n</messages>",
+  "groupFolder": "web-chat",
+  "chatJid": "web-chat@smbos",
+  "isMain": false
+}
+
+=== Container Args ===
+run -i --rm --name nanoclaw-web-chat-1771546364467 -v /Users/administrator/Desktop/retree/smbos/groups/web-chat:/workspace/group -v /Users/administrator/Desktop/retree/smbos/data/sessions/web-chat/.claude:/home/node/.claude -v /Users/administrator/Desktop/retree/smbos/data/ipc/web-chat:/workspace/ipc -v /Users/administrator/Desktop/retree/smbos/container/agent-runner/src:/app/src:ro nanoclaw-agent:latest
+
+=== Mounts ===
+/Users/administrator/Desktop/retree/smbos/groups/web-chat -> /workspace/group
+/Users/administrator/Desktop/retree/smbos/data/sessions/web-chat/.claude -> /home/node/.claude
+/Users/administrator/Desktop/retree/smbos/data/ipc/web-chat -> /workspace/ipc
+/Users/administrator/Desktop/retree/smbos/container/agent-runner/src -> /app/src (ro)
+
+=== Stderr ===
+
+
+=== Stdout ===
+error TS18003: No inputs were found in config file '/app/tsconfig.json'. Specified 'include' paths were '["src/**/*"]' and 'exclude' paths were '["node_modules","dist"]'.
+npm notice
+npm notice New major version of npm available! 10.9.4 -> 11.10.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.10.1
+npm notice To update run: npm install -g npm@11.10.1
+npm notice

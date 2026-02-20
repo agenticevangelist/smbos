@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   TextArea,
   Button,
   InlineLoading,
+  Select,
+  SelectItem,
 } from '@carbon/react';
-import { Send, Chat } from '@carbon/icons-react';
+import { Send, Chat, CircleFilled, TrashCan } from '@carbon/icons-react';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -14,32 +16,128 @@ interface ChatMessage {
   timestamp: string;
 }
 
-const NANOCLAW_URL = 'http://127.0.0.1:3100';
+interface AgentOption {
+  id: string;
+  name: string;
+  status: 'running' | 'stopped' | 'error';
+  port?: number;
+}
+
+function getChatKey(agentId: string): string {
+  return `smbos_chat_${agentId}`;
+}
+
+function loadMessages(agentId: string): ChatMessage[] {
+  if (!agentId) return [];
+  try {
+    const raw = localStorage.getItem(getChatKey(agentId));
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveMessages(agentId: string, messages: ChatMessage[]): void {
+  if (!agentId) return;
+  // Keep last 200 messages to avoid localStorage bloat
+  const trimmed = messages.slice(-200);
+  localStorage.setItem(getChatKey(agentId), JSON.stringify(trimmed));
+}
 
 export function AgentChat() {
+  const [agents, setAgents] = useState<AgentOption[]>([]);
+  const [selectedAgentId, setSelectedAgentId] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [isHealthy, setIsHealthy] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const fetchAgents = useCallback(async () => {
+    try {
+      const res = await fetch('/api/agents');
+      if (res.ok) {
+        const data: AgentOption[] = await res.json();
+        setAgents(data);
+        if (!selectedAgentId || !data.find(a => a.id === selectedAgentId)) {
+          const running = data.find(a => a.status === 'running');
+          if (running) setSelectedAgentId(running.id);
+          else if (data.length > 0) setSelectedAgentId(data[0].id);
+        }
+      }
+    } catch { /* silently handle */ }
+  }, [selectedAgentId]);
+
+  useEffect(() => {
+    fetchAgents();
+    const interval = setInterval(fetchAgents, 10000);
+    return () => clearInterval(interval);
+  }, [fetchAgents]);
+
+  // Restore messages from localStorage when agent changes
+  useEffect(() => {
+    if (selectedAgentId) {
+      setMessages(loadMessages(selectedAgentId));
+    }
+  }, [selectedAgentId]);
+
+  // Persist messages to localStorage on change
+  useEffect(() => {
+    if (selectedAgentId && messages.length > 0) {
+      saveMessages(selectedAgentId, messages);
+    }
+  }, [messages, selectedAgentId]);
+
+  // Health check via NanoClaw's GET /api/health
+  const selectedAgent = agents.find(a => a.id === selectedAgentId);
+  const agentUrl = selectedAgent?.port ? `http://127.0.0.1:${selectedAgent.port}` : null;
+
+  useEffect(() => {
+    if (!agentUrl || selectedAgent?.status !== 'running') {
+      setIsHealthy(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkHealth = async () => {
+      try {
+        const res = await fetch(`${agentUrl}/api/health`, { signal: AbortSignal.timeout(3000) });
+        if (!cancelled) setIsHealthy(res.ok);
+      } catch {
+        if (!cancelled) setIsHealthy(false);
+      }
+    };
+
+    checkHealth();
+    const interval = setInterval(checkHealth, 15000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [agentUrl, selectedAgent?.status]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
 
+  const isConnectable = selectedAgent?.status === 'running' && agentUrl && isHealthy;
+
+  const clearChat = () => {
+    setMessages([]);
+    if (selectedAgentId) {
+      localStorage.removeItem(getChatKey(selectedAgentId));
+    }
+  };
+
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();
-    if (!messageText || isThinking) return;
+    if (!messageText || isThinking || !agentUrl) return;
 
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setMessages(prev => [...prev, { role: 'user', content: messageText, timestamp }]);
     setInput('');
     setIsThinking(true);
 
-    // Accumulate streamed text into a single assistant message
     let assistantText = '';
 
     try {
-      const response = await fetch(`${NANOCLAW_URL}/api/chat`, {
+      const response = await fetch(`${agentUrl}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: messageText }),
@@ -61,9 +159,8 @@ export function AgentChat() {
 
         buffer += decoder.decode(value, { stream: true });
 
-        // Parse SSE events from buffer
         const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        buffer = lines.pop() || '';
 
         let currentEvent = '';
         for (const line of lines) {
@@ -74,12 +171,10 @@ export function AgentChat() {
               const data = JSON.parse(line.slice(6));
               if (currentEvent === 'message' && data.text) {
                 if (!assistantText) {
-                  // First chunk — add a new message
                   assistantText = data.text;
                   const replyTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                   setMessages(prev => [...prev, { role: 'assistant', content: data.text, timestamp: replyTimestamp }]);
                 } else {
-                  // Subsequent chunks — append to existing message
                   assistantText += '\n\n' + data.text;
                   setMessages(prev => {
                     const updated = [...prev];
@@ -94,6 +189,8 @@ export function AgentChat() {
                   content: `Error: ${data.text}`,
                   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 }]);
+                setIsThinking(false);
+              } else if (currentEvent === 'done') {
                 setIsThinking(false);
               }
             } catch { /* ignore malformed data */ }
@@ -114,14 +211,69 @@ export function AgentChat() {
 
   return (
     <>
+      {/* Agent selector */}
+      <div style={{ padding: '0 1rem', borderBottom: '1px solid var(--cds-border-subtle)' }}>
+        <Select
+          id="agent-select"
+          labelText=""
+          size="sm"
+          value={selectedAgentId}
+          onChange={(e) => setSelectedAgentId(e.target.value)}
+        >
+          {agents.length === 0 && <SelectItem value="" text="No agents found" />}
+          {agents.map(a => (
+            <SelectItem key={a.id} value={a.id} text={`${a.name} ${a.status === 'running' ? '●' : '○'}`} />
+          ))}
+        </Select>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.25rem 0 0.5rem' }}>
+          {selectedAgent && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CircleFilled size={8} style={{ color: isHealthy ? 'var(--cds-support-success)' : 'var(--cds-text-disabled)' }} />
+              <span style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
+                {isHealthy ? `Connected :${selectedAgent.port}` : selectedAgent.status === 'running' ? 'Connecting...' : 'Not running'}
+              </span>
+            </div>
+          )}
+          {messages.length > 0 && (
+            <Button
+              hasIconOnly
+              renderIcon={TrashCan}
+              iconDescription="Clear chat"
+              kind="ghost"
+              size="sm"
+              onClick={clearChat}
+            />
+          )}
+        </div>
+      </div>
+
       <div className="sidebar-content">
         <div className="chat-messages">
-          {messages.length === 0 && !isThinking ? (
+          {!isConnectable ? (
             <div className="chat-empty">
               <Chat size={48} />
-              <p>How can I help you today?</p>
+              {selectedAgent ? (
+                <>
+                  <p>{selectedAgent.name} is {selectedAgent.status === 'running' ? 'connecting' : 'not running'}</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginTop: '0.5rem' }}>
+                    {selectedAgent.status === 'running' ? 'Waiting for health check...' : 'Start the agent from the Agents page to chat'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>No agents available</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginTop: '0.5rem' }}>
+                    Create an agent in the Agents page to get started
+                  </p>
+                </>
+              )}
+            </div>
+          ) : messages.length === 0 && !isThinking ? (
+            <div className="chat-empty">
+              <Chat size={48} />
+              <p>Chat with {selectedAgent?.name}</p>
               <p style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginTop: '0.5rem' }}>
-                Ask me anything or describe what you need done
+                Ask anything or describe what you need done
               </p>
             </div>
           ) : (
@@ -151,7 +303,7 @@ export function AgentChat() {
             <TextArea
               id="chat-input"
               labelText=""
-              placeholder="Ask anything..."
+              placeholder={isConnectable ? 'Ask anything...' : 'Agent not running'}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -161,6 +313,7 @@ export function AgentChat() {
                 }
               }}
               rows={1}
+              disabled={!isConnectable}
             />
           </div>
           <div className="right-button-container">
@@ -170,7 +323,7 @@ export function AgentChat() {
               hasIconOnly
               size="md"
               onClick={() => sendMessage()}
-              disabled={!input.trim() || isThinking}
+              disabled={!input.trim() || isThinking || !isConnectable}
             />
           </div>
         </div>

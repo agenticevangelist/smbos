@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
     '@supabase/supabase-js',
     '@anthropic-ai/sdk',
     'cheerio',
+    'gray-matter',
+    'js-yaml',
+    'node-cron',
   ],
 };
 

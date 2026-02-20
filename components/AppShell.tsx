@@ -12,12 +12,13 @@ import {
   ContainedList,
   ContainedListItem,
 } from '@carbon/react';
-import { Search, Notification, UserAvatar, Chat, Asleep, Light, Group, Events, Activity, Home, Menu, Settings, Close } from '@carbon/icons-react';
+import { Chat, Asleep, Light, Group, Events, Activity, Home, Menu, Settings, Close } from '@carbon/icons-react';
 import { DynamicSkillUI } from './DynamicSkillUI';
 import { Agents } from './Agents';
 import { ScheduledTasks } from './ScheduledTasks';
 import { Dashboard } from './Dashboard';
 import { SkillsManagement } from './SkillsManagement';
+import { NanoClawSettings } from './NanoClawSettings';
 import { AgentChat } from './AgentChat';
 import './AppShell.scss';
 import packageJson from '../package.json';
@@ -87,7 +88,7 @@ export function AppShell() {
       const data = await response.json();
       setSkills(data);
     } catch (e) {
-      console.error('Failed to fetch skills');
+      // silently handle — sidebar shows empty skill list
     }
   };
 
@@ -240,6 +241,15 @@ export function AppShell() {
                   Scheduled Tasks
                 </div>
               </ContainedListItem>
+              <ContainedListItem
+                onClick={() => handleNavigation('nanoclaw-settings')}
+                className={activePage === 'nanoclaw-settings' ? 'active-item' : ''}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Settings size={16} />
+                  NanoClaw Settings
+                </div>
+              </ContainedListItem>
             </ContainedList>
           </div>
           <div className="sidebar-footer" style={{ padding: '0 1rem', alignItems: 'center' }}>
@@ -280,9 +290,8 @@ export function AppShell() {
             SMBOS
           </HeaderName>
           <HeaderGlobalBar>
-            <HeaderGlobalAction aria-label="Search">
-              <Search size={20} />
-            </HeaderGlobalAction>
+            {/* TODO: Implement global search across skills and agents */}
+            {/* TODO: Implement notifications system (agent events, schedule triggers, errors) */}
             <HeaderGlobalAction
               aria-label="Manage Skills"
               onClick={() => handleNavigation('skills-management')}
@@ -290,9 +299,6 @@ export function AppShell() {
               tooltipAlignment="end"
             >
               <Settings size={20} />
-            </HeaderGlobalAction>
-            <HeaderGlobalAction aria-label="Notifications">
-              <Notification size={20} />
             </HeaderGlobalAction>
             <HeaderGlobalAction
               aria-label="Toggle Theme"
@@ -307,9 +313,7 @@ export function AppShell() {
             >
               <Chat size={20} />
             </HeaderGlobalAction>
-            <HeaderGlobalAction aria-label="User Profile">
-              <UserAvatar size={20} />
-            </HeaderGlobalAction>
+            {/* TODO: Implement user profile / settings page */}
           </HeaderGlobalBar>
         </Header>
 
@@ -322,6 +326,8 @@ export function AppShell() {
               <Agents />
           ) : activePage === 'tasks' ? (
               <ScheduledTasks />
+          ) : activePage === 'nanoclaw-settings' ? (
+              <NanoClawSettings />
           ) : (
               <DynamicSkillUI skillId={activePage} />
           )}

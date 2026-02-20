@@ -43,6 +43,7 @@ import {
 } from '@carbon/react';
 import { Search, Download, View, Table as TableIcon, List, Grid as GridIcon } from '@carbon/icons-react';
 import { skillEvents, type SkillEvent } from '@/lib/events/skillEvents';
+import './DynamicSkillUI.scss';
 
 interface SkillUIConfig {
   id: string;
@@ -210,18 +211,6 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
       const resultsData = config.outputs.rootPath ? data[config.outputs.rootPath] : data;
       setResults(Array.isArray(resultsData) ? resultsData : [resultsData]);
       setStatus(`Success! Found ${Array.isArray(resultsData) ? resultsData.length : 1} items.`);
-      
-      // Track usage
-      await fetch('/api/usage/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          skillId,
-          params: inputs,
-          resultCount: Array.isArray(resultsData) ? resultsData.length : 1,
-          timestamp: new Date().toISOString()
-        })
-      });
 
       setTimeout(() => setStatus(''), 3000);
     } catch (err) {
@@ -234,24 +223,18 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
 
   const getFilteredResults = useCallback(() => {
     if (!config || results.length === 0) return [];
-    
+
     return results.filter(item => {
       if (!config.filters) return true;
       for (const filter of config.filters) {
         const val = filterValues[filter.id];
         if (val === undefined || val === null || val === 'all' || val === false) continue;
-        
+
         const itemVal = item[filter.field || filter.id];
-        
+
         if (filter.type === 'checkbox' && !itemVal) return false;
-        if (filter.type === 'select') {
-            if (filter.id === 'ratingCondition') {
-                if (val === 'good' && itemVal < 4.0) return false;
-                if (val === 'bad' && itemVal >= 4.0) return false;
-            } else if (itemVal != val) {
-                return false;
-            }
-        }
+        if (filter.type === 'select' && String(itemVal) !== String(val)) return false;
+        if (filter.type === 'number' && Number(itemVal) < Number(val)) return false;
       }
       return true;
     });
@@ -259,7 +242,7 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
 
   if (!config) {
     return (
-      <div style={{ padding: '2rem' }}>
+      <div className="dynamic-skill-ui">
         <InlineNotification kind="info" title="Loading" subtitle={`Initializing skill engine for ${skillId}...`} hideCloseButton />
       </div>
     );
@@ -363,8 +346,10 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
         return <Tag type={tagType}>{typeof value === 'number' ? value.toFixed(1) : value}</Tag>;
     }
     if (col.type === 'linkOrTag') {
-        if (row.hasInstagram) return <Tag type="blue">Instagram</Tag>;
-        if (value) return <a href={value} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cds-link-primary)' }}>Visit</a>;
+        if (value && typeof value === 'string' && value.startsWith('http')) {
+          return <a href={value} target="_blank" rel="noopener noreferrer" className="link-cell">{new URL(value).hostname.replace('www.', '')}</a>;
+        }
+        if (value) return <Tag type="blue">{String(value)}</Tag>;
         return <Tag type="gray">None</Tag>;
     }
     if (col.type === 'code') {
@@ -387,6 +372,32 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
     return config.outputs.columns || [];
   };
 
+  const handleExport = () => {
+    if (filteredResults.length === 0) return;
+    const cols = getEffectiveColumns();
+    const headers = cols.map((c: any) => c.header || c.key);
+    const keys = cols.map((c: any) => c.key);
+    const escapeCsv = (val: any): string => {
+      if (val === null || val === undefined) return '';
+      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    };
+    const csvContent = [
+      headers.map(escapeCsv).join(','),
+      ...filteredResults.map(row => keys.map((k: string) => escapeCsv(row[k])).join(','))
+    ].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${skillId}-export.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const renderOutput = () => {
     if (results.length === 0) return null;
 
@@ -401,7 +412,7 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
                 <TableContainer title="Results" description={`Found ${filteredResults.length} items`}>
                   <TableToolbar>
                     <TableToolbarContent>
-                      <Button renderIcon={Download} kind="ghost" size="sm">Export</Button>
+                      <Button renderIcon={Download} kind="ghost" size="sm" onClick={handleExport}>Export</Button>
                     </TableToolbarContent>
                   </TableToolbar>
                   <Table {...getTableProps()}>
@@ -448,7 +459,7 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
                 <Column key={i} lg={4} md={4} sm={4}>
                   <ClickableTile style={{ height: '100%' }}>
                     <Stack gap={3}>
-                      <h4 style={{ fontWeight: 600 }}>{item[config.outputs.card?.titleKey || 'name']}</h4>
+                      <h4 className="card-title">{item[config.outputs.card?.titleKey || 'name']}</h4>
                       <p>{item[config.outputs.card?.descriptionKey || 'description']}</p>
                       {config.outputs.card?.tagKey && <Tag type="blue">{item[config.outputs.card.tagKey]}</Tag>}
                     </Stack>
@@ -464,7 +475,7 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
             <Accordion>
               {paginatedResults.map((item, i) => (
                 <AccordionItem key={i} title={item[config.outputs.list?.titleKey || 'name']}>
-                  <div style={{ padding: '1rem' }}>
+                  <div className="accordion-content">
                     <p>{item[config.outputs.list?.descriptionKey || 'description']}</p>
                     <CodeSnippet type="multi">{JSON.stringify(item, null, 2)}</CodeSnippet>
                   </div>
@@ -479,10 +490,10 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
   };
 
   return (
-    <div className="dynamic-skill-ui" style={{ padding: '2rem' }}>
+    <div className="dynamic-skill-ui">
       <Grid>
         <Column lg={16}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+          <div className="skill-header">
             <div>
                 <h1 className="page-title">{config.name}</h1>
                 <p className="page-description">{config.description}</p>
@@ -490,7 +501,7 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
           </div>
         </Column>
 
-        <Column lg={16} className="inputs-section" style={{ marginBottom: '2rem' }}>
+        <Column lg={16} className="inputs-section">
             {config.layout === 'tabs' ? (
                 <Tabs>
                     <TabList aria-label="Input tabs">
@@ -503,7 +514,7 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
                                     {tab.inputs.map(inputId => {
                                         const input = config.inputs.find(i => i.id === inputId);
                                         return input ? (
-                                            <Column key={input.id} lg={4} md={4} sm={4} style={{ marginBottom: '1rem' }}>
+                                            <Column key={input.id} lg={4} md={4} sm={4} className="input-column">
                                                 {renderInput(input)}
                                             </Column>
                                         ) : null;
@@ -517,12 +528,12 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
                 <Stack gap={6}>
                     {config.sections?.map(section => (
                         <div key={section.id}>
-                            <h4 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--cds-border-subtle)', paddingBottom: '0.5rem' }}>{section.title}</h4>
+                            <h4 className="section-title">{section.title}</h4>
                             <Grid condensed>
                                 {section.inputs.map(inputId => {
                                     const input = config.inputs.find(i => i.id === inputId);
                                     return input ? (
-                                        <Column key={input.id} lg={4} md={4} sm={4} style={{ marginBottom: '1rem' }}>
+                                        <Column key={input.id} lg={4} md={4} sm={4} className="input-column">
                                             {renderInput(input)}
                                         </Column>
                                     ) : null;
@@ -534,14 +545,14 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
             ) : (
                 <Grid condensed>
                     {config.inputs.map(input => (
-                        <Column key={input.id} lg={4} md={4} sm={4} style={{ marginBottom: '1rem' }}>
+                        <Column key={input.id} lg={4} md={4} sm={4} className="input-column">
                             {renderInput(input)}
                         </Column>
                     ))}
                 </Grid>
             )}
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+            <div className="execute-bar">
                 <Button onClick={handleExecute} renderIcon={Search} disabled={isProcessing}>
                     {isProcessing ? 'Processing...' : 'Execute Skill'}
                 </Button>
@@ -553,8 +564,8 @@ export function DynamicSkillUI({ skillId }: DynamicSkillUIProps) {
 
         {results.length > 0 && (
             <>
-                <Column lg={16} style={{ marginTop: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <Column lg={16} className="output-section">
+                    <div className="output-header">
                         <h3>Output</h3>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                              {/* View Switchers if multiple types allowed could go here */}

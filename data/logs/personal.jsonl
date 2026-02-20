@@ -1,0 +1,2 @@
+{"timestamp":"2026-02-19T23:48:39.851Z","type":"agent:start","agentId":"personal","data":{"pid":74432,"port":3100}}
+{"timestamp":"2026-02-19T23:48:42.162Z","type":"agent:error","agentId":"personal","data":{"reason":"Process exited with code 1"}}

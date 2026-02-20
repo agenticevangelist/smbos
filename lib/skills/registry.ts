@@ -90,6 +90,7 @@ export async function getAllSkills(): Promise<SkillRegistryEntry[]> {
   const configData = readConfig(skillsDir);
 
   const dirs = fs.readdirSync(skillsDir).filter(f => {
+    if (f.startsWith('_') || f.startsWith('.')) return false;
     const fullPath = path.join(skillsDir, f);
     return fs.statSync(fullPath).isDirectory() &&
       (fs.existsSync(path.join(fullPath, 'ui.json')) || fs.existsSync(path.join(fullPath, 'SKILL.md')));
@@ -166,7 +167,9 @@ export async function executeSkill(id: string, params: Record<string, any>): Pro
     throw new Error(`Execution script not found for skill: ${id}`);
   }
 
-  const toolModule = await import(importPath);
+  // Use indirect import to prevent Turbopack static analysis
+  const load = new Function('p', 'return import(p)') as (p: string) => Promise<any>;
+  const toolModule = await load(importPath);
   if (!toolModule?.execute) {
     throw new Error(`Execute function not found in tool for skill: ${id}`);
   }
