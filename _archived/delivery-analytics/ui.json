@@ -1,0 +1,68 @@
+{
+  "id": "delivery-analytics",
+  "name": "Delivery Analytics",
+  "description": "Dashboard KPIs, time series, restaurant and product analytics",
+  "icon": "Analytics",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "dashboard", "label": "Dashboard", "inputs": ["dateFrom", "dateTo", "source"] },
+    { "id": "timeseries", "label": "Time Series", "inputs": ["tsDateFrom", "tsDateTo", "metric", "granularity"] },
+    { "id": "restaurants", "label": "Restaurants", "inputs": ["restDateFrom", "restDateTo", "restSortBy", "restLimit"] },
+    { "id": "products", "label": "Products", "inputs": ["prodDateFrom", "prodDateTo", "prodSortBy", "prodCategory", "prodLimit"] }
+  ],
+  "inputs": [
+    { "id": "dateFrom", "label": "Date From", "type": "date", "required": true },
+    { "id": "dateTo", "label": "Date To", "type": "date", "required": true },
+    { "id": "source", "label": "Source", "type": "select", "default": "all", "options": [
+      { "value": "all", "text": "All Sources" }, { "value": "iiko", "text": "iiko" }, { "value": "wolt", "text": "Wolt" }
+    ]},
+    { "id": "tsDateFrom", "label": "Date From", "type": "date", "required": true },
+    { "id": "tsDateTo", "label": "Date To", "type": "date", "required": true },
+    { "id": "metric", "label": "Metric", "type": "select", "default": "revenue", "options": [
+      { "value": "revenue", "text": "Revenue" }, { "value": "orders", "text": "Orders" }, { "value": "average_check", "text": "Average Check" }
+    ]},
+    { "id": "granularity", "label": "Granularity", "type": "select", "default": "day", "options": [
+      { "value": "day", "text": "Daily" }, { "value": "week", "text": "Weekly" }, { "value": "month", "text": "Monthly" }
+    ]},
+    { "id": "restDateFrom", "label": "Date From", "type": "date" },
+    { "id": "restDateTo", "label": "Date To", "type": "date" },
+    { "id": "restSortBy", "label": "Sort By", "type": "select", "default": "revenue", "options": [
+      { "value": "revenue", "text": "Revenue" }, { "value": "orders", "text": "Orders" }, { "value": "average_check", "text": "Avg Check" }
+    ]},
+    { "id": "restLimit", "label": "Limit", "type": "number", "min": 5, "max": 100, "default": 20 },
+    { "id": "prodDateFrom", "label": "Date From", "type": "date" },
+    { "id": "prodDateTo", "label": "Date To", "type": "date" },
+    { "id": "prodSortBy", "label": "Sort By", "type": "select", "default": "revenue", "options": [
+      { "value": "revenue", "text": "Revenue" }, { "value": "quantity", "text": "Quantity" }
+    ]},
+    { "id": "prodCategory", "label": "Category Filter", "type": "text", "placeholder": "Filter by category" },
+    { "id": "prodLimit", "label": "Limit", "type": "number", "min": 5, "max": 200, "default": 50 }
+  ],
+  "api": {
+    "url": "/api/skills/delivery-analytics/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "dateFrom": "{{dateFrom}}", "dateTo": "{{dateTo}}", "source": "{{source}}",
+      "tsDateFrom": "{{tsDateFrom}}", "tsDateTo": "{{tsDateTo}}", "metric": "{{metric}}", "granularity": "{{granularity}}",
+      "restDateFrom": "{{restDateFrom}}", "restDateTo": "{{restDateTo}}", "restSortBy": "{{restSortBy}}", "restLimit": "{{restLimit}}",
+      "prodDateFrom": "{{prodDateFrom}}", "prodDateTo": "{{prodDateTo}}", "prodSortBy": "{{prodSortBy}}", "prodCategory": "{{prodCategory}}", "prodLimit": "{{prodLimit}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "metric", "header": "Metric" },
+      { "key": "value", "header": "Value" },
+      { "key": "orders", "header": "Orders" },
+      { "key": "name", "header": "Restaurant" },
+      { "key": "revenue", "header": "Revenue" },
+      { "key": "averageCheck", "header": "Avg Check" },
+      { "key": "date", "header": "Date" },
+      { "key": "category", "header": "Category" },
+      { "key": "quantity", "header": "Quantity" },
+      { "key": "sku", "header": "SKU" },
+      { "key": "avgPrice", "header": "Avg Price" }
+    ]
+  }
+}

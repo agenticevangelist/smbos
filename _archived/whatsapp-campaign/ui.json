@@ -1,0 +1,131 @@
+{
+  "id": "whatsapp-campaign",
+  "name": "WhatsApp Campaign",
+  "description": "Bulk messaging, scheduled campaigns, and template management",
+  "icon": "SendFilled",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "send", "label": "Send Campaign", "inputs": ["templateName", "recipients", "restaurantNames", "spreadOverHours"] },
+    { "id": "schedule", "label": "Schedule", "inputs": ["schedTemplateName", "schedRecipients", "schedRestaurantNames", "scheduledTime", "campaignName"] },
+    { "id": "history", "label": "Campaign History", "inputs": ["historyAction", "campaignId"] },
+    { "id": "templates", "label": "Templates", "inputs": ["templateAction"] }
+  ],
+  "inputs": [
+    {
+      "id": "templateName",
+      "label": "Template Name",
+      "type": "text",
+      "required": true,
+      "placeholder": "e.g., restaurant_outreach"
+    },
+    {
+      "id": "recipients",
+      "label": "Recipients (JSON array)",
+      "type": "textarea",
+      "required": true,
+      "placeholder": "[\"+995591234567\", \"+995591234568\"]",
+      "helperText": "Array of phone numbers in international format"
+    },
+    {
+      "id": "restaurantNames",
+      "label": "Restaurant Names (JSON)",
+      "type": "textarea",
+      "placeholder": "{\"995591234567\": \"Restaurant One\", \"995591234568\": \"Restaurant Two\"}",
+      "helperText": "Map phone → restaurant name for template variable substitution"
+    },
+    {
+      "id": "spreadOverHours",
+      "label": "Spread Over Hours",
+      "type": "number",
+      "min": 0,
+      "max": 24,
+      "default": 0,
+      "helperText": "0 = standard delays (12-18s between messages)"
+    },
+    {
+      "id": "schedTemplateName",
+      "label": "Template Name",
+      "type": "text",
+      "required": true,
+      "placeholder": "e.g., restaurant_outreach"
+    },
+    {
+      "id": "schedRecipients",
+      "label": "Recipients (JSON array)",
+      "type": "textarea",
+      "required": true,
+      "placeholder": "[\"+995591234567\"]"
+    },
+    {
+      "id": "schedRestaurantNames",
+      "label": "Restaurant Names (JSON)",
+      "type": "textarea",
+      "placeholder": "{\"995591234567\": \"Restaurant One\"}"
+    },
+    {
+      "id": "scheduledTime",
+      "label": "Scheduled Time (ISO)",
+      "type": "text",
+      "required": true,
+      "placeholder": "2026-02-19T10:00:00+04:00",
+      "helperText": "ISO datetime in Tbilisi timezone (UTC+4)"
+    },
+    {
+      "id": "campaignName",
+      "label": "Campaign Name",
+      "type": "text",
+      "placeholder": "e.g., February outreach batch 1"
+    },
+    {
+      "id": "historyAction",
+      "label": "Action",
+      "type": "select",
+      "default": "list",
+      "options": [
+        { "value": "list", "text": "List Campaigns" },
+        { "value": "messages", "text": "View Campaign Messages" },
+        { "value": "cancel", "text": "Cancel Campaign" },
+        { "value": "list_scheduled", "text": "List Scheduled" },
+        { "value": "cancel_scheduled", "text": "Cancel Scheduled" }
+      ]
+    },
+    {
+      "id": "campaignId",
+      "label": "Campaign ID",
+      "type": "text",
+      "placeholder": "Enter campaign ID"
+    },
+    {
+      "id": "templateAction",
+      "label": "Action",
+      "type": "select",
+      "default": "list",
+      "options": [
+        { "value": "list", "text": "List Templates" }
+      ]
+    }
+  ],
+  "api": {
+    "url": "/api/skills/whatsapp-campaign/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "templateName": "{{templateName}}", "recipients": "{{recipients}}", "restaurantNames": "{{restaurantNames}}",
+      "spreadOverHours": "{{spreadOverHours}}", "schedTemplateName": "{{schedTemplateName}}", "schedRecipients": "{{schedRecipients}}",
+      "schedRestaurantNames": "{{schedRestaurantNames}}", "scheduledTime": "{{scheduledTime}}", "campaignName": "{{campaignName}}",
+      "historyAction": "{{historyAction}}", "campaignId": "{{campaignId}}", "templateAction": "{{templateAction}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "id", "header": "ID" },
+      { "key": "name", "header": "Name" },
+      { "key": "status", "header": "Status", "type": "tag", "tagType": "status" },
+      { "key": "total", "header": "Total" },
+      { "key": "sent", "header": "Sent" },
+      { "key": "failed", "header": "Failed" },
+      { "key": "createdAt", "header": "Created" }
+    ]
+  }
+}

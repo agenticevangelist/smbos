@@ -1,0 +1,72 @@
+{
+  "id": "menu-manager",
+  "name": "Menu Manager",
+  "description": "Manage Wolt restaurant menus — view, edit prices, and update inventory",
+  "icon": "Catalog",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "view", "label": "View Menu", "inputs": ["venueSlug", "menuSearch"] },
+    { "id": "edit", "label": "Edit Items", "inputs": ["editItems"] },
+    { "id": "inventory", "label": "Inventory", "inputs": ["inventoryItems"] }
+  ],
+  "inputs": [
+    {
+      "id": "venueSlug",
+      "label": "Venue Slug",
+      "type": "text",
+      "placeholder": "e.g., my-restaurant-tbilisi",
+      "helperText": "Wolt venue slug (from URL). Leave empty for default venue."
+    },
+    {
+      "id": "menuSearch",
+      "label": "Search Items",
+      "type": "text",
+      "placeholder": "Search by name, SKU, or category"
+    },
+    {
+      "id": "editItems",
+      "label": "Items to Update (JSON)",
+      "type": "textarea",
+      "placeholder": "[{\"sku\": \"ITEM-001\", \"price\": 1500, \"enabled\": true}]",
+      "helperText": "Array of items. Price in cents (1500 = 15.00 GEL). Fields: sku, external_id, price, enabled, discounted_price, vat_percentage"
+    },
+    {
+      "id": "inventoryItems",
+      "label": "Inventory Update (JSON)",
+      "type": "textarea",
+      "placeholder": "[{\"sku\": \"ITEM-001\", \"inventory\": 50}]",
+      "helperText": "Array of items. inventory=0 means sold out. Fields: sku, external_id, inventory"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/menu-manager/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "venueSlug": "{{venueSlug}}",
+      "menuSearch": "{{menuSearch}}",
+      "editItems": "{{editItems}}",
+      "inventoryItems": "{{inventoryItems}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "category", "header": "Category" },
+      { "key": "name", "header": "Item Name" },
+      { "key": "price", "header": "Price (GEL)" },
+      { "key": "available", "header": "Available", "type": "tag", "tagType": "status" },
+      { "key": "sku", "header": "SKU" },
+      { "key": "externalId", "header": "External ID" },
+      { "key": "options", "header": "Options" }
+    ]
+  },
+  "filters": [
+    {
+      "id": "filterAvailable",
+      "label": "Available Only",
+      "type": "checkbox",
+      "field": "isAvailable"
+    }
+  ]
+}

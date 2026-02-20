@@ -1,67 +1,123 @@
-# SMBOS (Smart Business Operating System)
+# SMBOS
 
-SMBOS is a smart digital action interface designed for high-precision task execution through the orchestration of human-agent collaboration and modular toolsets.
+SMBOS is a NanoClaw-first UI shell for running and operating multiple agents.
 
-## Architecture & Design Principles
+## Core Model
 
-### Modular Skill System
-SMBOS implements a decentralized skill architecture based on the **Agent Skills open standard**. Each functionality is encapsulated as an isolated module within the `skills/` directory.
+- **NanoClaw is the runtime core** (`nanoclaw/`): chat sessions, scheduler, task execution, MCP tools, channel integrations.
+- **SMBOS is the control plane + UI**: starts/stops agents, renders skill interfaces, shows runtime state/logs.
 
-*   **Atomic Definitions**: Each skill directory is self-contained, containing logic, UI schema, and documentation.
-*   **Discovery**: The system uses a filesystem-based discovery mechanism to dynamically load and register skills at runtime.
-*   **Standardized Interoperability**: Skills utilize `SKILL.md` with YAML frontmatter for instruction sets, ensuring compatibility with LLM-based agent orchestrators.
+This repository intentionally avoids re-implementing functionality already available in NanoClaw.
 
-### Dynamic UI Orchestration
-The platform utilizes a generic `DynamicSkillUI` engine that consumes JSON schema definitions (`ui.json`) to render complex, state-driven interfaces.
+## What We Use from NanoClaw (ready-made)
 
-*   **Schema-Driven Components**: Input forms, data tables, and filters are generated dynamically from metadata.
-*   **Unified Execution Path**: Tool invocations are routed through a standardized API wrapper (`/api/skills/[id]/execute`) that resolves to local module exports.
-*   **State Management**: Unified handling of pagination, filtering, and asynchronous data fetching across all skill types.
+Reference: https://github.com/qwibitai/nanoclaw
 
-### Telemetry & Analytics
-Integrated telemetry captures granular interaction data for every skill execution.
-*   **Persistence**: Structured logging of parameters, results, and performance metrics.
-*   **Analysis**: Data is exposed for periodic analysis by agents to optimize workflows and identify automation opportunities.
+- HTTP API: `GET /api/health`, `POST /api/chat` (SSE), `GET /api/messages`, `GET /api/tasks`, `GET /api/state`
+- SQLite persistence: sessions, messages, registered groups, scheduled tasks, task run logs
+- Built-in MCP tools inside runner:
+  - `send_message`
+  - `schedule_task`
+  - `list_tasks`
+  - `pause_task`
+  - `resume_task`
+  - `cancel_task`
+  - `register_group`
+- Built-in scheduler: `cron` / `interval` / `once`
+- Built-in channels:
+  - Web chat (`web-chat@smbos`)
+  - Telegram channel (enabled by `TELEGRAM_BOT_TOKEN`)
+- Agent swarms support (Claude Agent SDK teams)
+- Container isolation and mount-allowlist security model
 
-## Technical Specifications
+## What SMBOS Adds
 
-*   **Framework**: Next.js 16 (App Router, Turbopack)
-*   **Language**: TypeScript 5+ (Strict mode)
-*   **Design System**: IBM Carbon Design System v11
-*   **Database**: SQLite (via better-sqlite3) for configuration and telemetry persistence
-*   **Isolation**: Designed for container-native execution environments (Docker/NanoClaw compatible)
+- Multi-agent lifecycle in one UI (`start` / `stop` / `restart` NanoClaw instances)
+- Agent folder management (`agents/<id>/agent.md`, `config.yaml`, `.env.example`, `memory/`)
+- Unified dashboard for:
+  - agents
+  - NanoClaw runtime tasks and state
+  - skill execution UI (`ui.json`-driven)
+- SMBOS-side event/process logs (`data/logs/*.jsonl`)
 
-## Directory Structure
+## Current Architecture
 
 ```text
 smbos/
-├── skills/               # Decentralized skill modules
-│   └── <id>/             
-│       ├── SKILL.md      # Frontmatter and instructions
-│       ├── ui.json       # UI Schema and API mapping
-│       ├── scripts/      # Execution logic (TypeScript/Shell)
-│       ├── template.md   # Output formatting templates
-│       └── examples/     # Training data and samples
-├── components/           # Core UI engine and shell components
-├── app/api/              # RESTful API infrastructure
-├── lib/                  # Shared libraries and database utilities
-└── info/                 # Integration prompts and technical docs
+├── app/
+│   └── api/
+│       ├── agents/*               # Agent lifecycle + metadata
+│       ├── nanoclaw/*             # Proxy to NanoClaw runtime API
+│       └── skills/*               # Skill registry and execution routes
+├── components/
+│   ├── Agents.tsx
+│   ├── AgentChat.tsx
+│   ├── ScheduledTasks.tsx
+│   ├── NanoClawSettings.tsx
+│   └── DynamicSkillUI.tsx
+├── lib/
+│   ├── agents/*                   # Agent config/lifecycle helpers
+│   └── skills/*                   # Skill discovery and metadata
+├── agents/                        # Agent definitions
+├── skills/                        # Skill modules (UI + execute scripts)
+└── nanoclaw/                      # Embedded NanoClaw runtime
 ```
 
-## Development & Integration
+## Quick Start
 
-### Skill Contribution
-New tools should be contributed following the modular standard defined in [`smbos/info/SKILL_CONTRIBUTION_PROMPT.md`](smbos/info/SKILL_CONTRIBUTION_PROMPT.md). No modifications to the core app logic are required for skill integration.
+1. Install dependencies:
 
-### Setup
-1.  Initialize environment variables in `.env.local`.
-2.  Install dependencies: `npm install`
-3.  Execute development server: `npm run dev`
+```bash
+npm install
+```
 
-## 📖 Contributor Guidelines
+2. Build NanoClaw runtime once:
 
-### Versioning & Commit Protocol
-To maintain strict synchronization between the platform state and the displayed metadata, all contributors (human and agent) MUST adhere to the following protocol:
-*   **Version Increment**: Every commit that modifies logic, schema, or UI must increment the `version` field in `package.json`.
-*   **Commit Documentation**: Every commit must include a concise but comprehensive note in the commit message describing the changes.
-*   **Dynamic Metadata**: The version displayed in the Explorer footer is linked directly to `package.json`. Failing to increment the version will result in desynchronized telemetry and debugging data.
+```bash
+cd nanoclaw
+npm install
+npm run build
+cd ..
+```
+
+3. Configure secrets:
+- `nanoclaw/.env` (or per-agent `.env` copied at runtime)
+- minimally one auth method:
+  - `CLAUDE_CODE_OAUTH_TOKEN` or
+  - `ANTHROPIC_API_KEY`
+
+4. Run SMBOS:
+
+```bash
+npm run dev
+```
+
+5. Open UI, create/start agent from **Agents** page, then chat from right sidebar.
+
+## NanoClaw Config Keys Exposed in SMBOS UI
+
+- `CLAUDE_CODE_OAUTH_TOKEN`
+- `ANTHROPIC_API_KEY`
+- `ASSISTANT_NAME`
+- `ASSISTANT_HAS_OWN_NUMBER`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_ONLY`
+- `HTTP_PORT`
+
+## Documentation
+
+- `docs/CORE.md` — source-of-truth architecture and boundaries
+- `docs/REFACTOR_PLAN.md` — current implementation plan without NanoClaw duplication
+- `docs/agent-system-plan.md` — multi-agent product/system plan
+- `docs/DAVID_PERSONAL.md` — personal agent use-cases
+
+## Non-Goals
+
+Do not build these in SMBOS if NanoClaw already provides them:
+
+- another scheduler engine
+- separate session store
+- custom task orchestration protocol
+- duplicate Telegram channel layer
+
+Use NanoClaw built-ins first; extend only where SMBOS needs UI/ops workflows.

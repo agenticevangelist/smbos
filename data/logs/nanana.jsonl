@@ -1,0 +1,10 @@
+{"timestamp":"2026-02-19T23:48:50.813Z","type":"agent:start","agentId":"nanana","data":{"pid":74698,"port":3100}}
+{"timestamp":"2026-02-19T23:48:52.046Z","type":"agent:error","agentId":"nanana","data":{"reason":"Process exited with code 1"}}
+{"timestamp":"2026-02-19T23:49:48.958Z","type":"agent:start","agentId":"nanana","data":{"pid":75976,"port":3100}}
+{"timestamp":"2026-02-19T23:49:50.188Z","type":"agent:error","agentId":"nanana","data":{"reason":"Process exited with code 1"}}
+{"timestamp":"2026-02-20T00:06:23.759Z","type":"agent:start","agentId":"nanana","data":{"pid":98289,"port":3100}}
+{"timestamp":"2026-02-20T00:06:24.969Z","type":"agent:error","agentId":"nanana","data":{"reason":"Process exited with code 1"}}
+{"timestamp":"2026-02-20T00:06:28.624Z","type":"agent:start","agentId":"nanana","data":{"pid":98403,"port":3100}}
+{"timestamp":"2026-02-20T00:06:29.359Z","type":"agent:error","agentId":"nanana","data":{"reason":"Process exited with code 1"}}
+{"timestamp":"2026-02-20T00:06:43.389Z","type":"agent:start","agentId":"nanana","data":{"pid":98732,"port":3100}}
+{"timestamp":"2026-02-20T00:06:44.615Z","type":"agent:error","agentId":"nanana","data":{"reason":"Process exited with code 1"}}

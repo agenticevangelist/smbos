@@ -1,0 +1,72 @@
+{
+  "id": "store-manager",
+  "name": "Store Manager",
+  "description": "Manage store online/offline status and opening hours",
+  "icon": "Store",
+  "layout": "sections",
+  "sections": [
+    { "id": "status", "title": "Store Status", "inputs": ["action", "storeStatus", "offlineUntil"] },
+    { "id": "hours", "title": "Opening Hours", "inputs": ["hoursAction", "openingHours"] }
+  ],
+  "inputs": [
+    {
+      "id": "action",
+      "label": "Action",
+      "type": "select",
+      "required": true,
+      "default": "get_status",
+      "options": [
+        { "value": "get_status", "text": "Get Current Status" },
+        { "value": "set_status", "text": "Set Status" }
+      ]
+    },
+    {
+      "id": "storeStatus",
+      "label": "Status",
+      "type": "select",
+      "default": "ONLINE",
+      "options": [
+        { "value": "ONLINE", "text": "Online" },
+        { "value": "OFFLINE", "text": "Offline" }
+      ]
+    },
+    {
+      "id": "offlineUntil",
+      "label": "Offline Until (ISO datetime)",
+      "type": "text",
+      "placeholder": "2026-02-18T22:00:00+04:00",
+      "helperText": "Optional — auto-come-online time. Leave empty for indefinite."
+    },
+    {
+      "id": "hoursAction",
+      "label": "Hours Action",
+      "type": "select",
+      "default": "get_hours",
+      "options": [
+        { "value": "get_hours", "text": "View Opening Hours" },
+        { "value": "set_hours", "text": "Update Opening Hours" }
+      ]
+    },
+    {
+      "id": "openingHours",
+      "label": "Opening Hours (JSON)",
+      "type": "textarea",
+      "placeholder": "[{\"opening_day\": \"MONDAY\", \"opening_time\": \"10:00\", \"closing_day\": \"MONDAY\", \"closing_time\": \"23:00\"}]",
+      "helperText": "Array of time slots. Days: MONDAY-SUNDAY."
+    }
+  ],
+  "api": {
+    "url": "/api/skills/store-manager/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "action": "{{action}}",
+      "storeStatus": "{{storeStatus}}",
+      "offlineUntil": "{{offlineUntil}}",
+      "hoursAction": "{{hoursAction}}",
+      "openingHours": "{{openingHours}}"
+    }
+  },
+  "outputs": {
+    "type": "json"
+  }
+}

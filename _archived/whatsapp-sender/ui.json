@@ -1,0 +1,55 @@
+{
+  "id": "whatsapp-sender",
+  "name": "WhatsApp Sender",
+  "description": "Send WhatsApp messages to contacts or broadcast to multiple numbers",
+  "icon": "Chat",
+  "inputs": [
+    {
+      "id": "phone",
+      "label": "Phone Number(s)",
+      "type": "text",
+      "placeholder": "+37491234567 (comma-separated for broadcast)",
+      "required": true,
+      "helperText": "International format with + prefix"
+    },
+    {
+      "id": "message",
+      "label": "Message",
+      "type": "textarea",
+      "placeholder": "Type your message here...",
+      "required": true
+    },
+    {
+      "id": "mode",
+      "label": "Send Mode",
+      "type": "select",
+      "default": "single",
+      "options": [
+        { "value": "single", "text": "Single message" },
+        { "value": "broadcast", "text": "Broadcast to multiple" }
+      ]
+    },
+    {
+      "id": "delay",
+      "label": "Delay between messages (seconds)",
+      "type": "number",
+      "min": 1,
+      "max": 30,
+      "default": 3,
+      "helperText": "For broadcast mode only"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/whatsapp-sender/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "phone": "{{phone}}",
+      "message": "{{message}}",
+      "mode": "{{mode}}",
+      "delay": "{{delay}}"
+    }
+  },
+  "outputs": {
+    "type": "json"
+  }
+}

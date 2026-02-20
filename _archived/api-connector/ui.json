@@ -1,0 +1,70 @@
+{
+  "id": "api-connector",
+  "name": "API Connector",
+  "description": "Make HTTP requests to any REST API endpoint and view responses",
+  "icon": "Connect",
+  "layout": "sections",
+  "sections": [
+    { "id": "request", "title": "Request", "inputs": ["url", "method", "headers", "body"] },
+    { "id": "options", "title": "Options", "inputs": ["timeout"] }
+  ],
+  "inputs": [
+    {
+      "id": "url",
+      "label": "URL",
+      "type": "text",
+      "placeholder": "https://api.example.com/endpoint",
+      "required": true
+    },
+    {
+      "id": "method",
+      "label": "Method",
+      "type": "select",
+      "default": "GET",
+      "options": [
+        { "value": "GET", "text": "GET" },
+        { "value": "POST", "text": "POST" },
+        { "value": "PUT", "text": "PUT" },
+        { "value": "PATCH", "text": "PATCH" },
+        { "value": "DELETE", "text": "DELETE" }
+      ]
+    },
+    {
+      "id": "headers",
+      "label": "Headers (JSON)",
+      "type": "textarea",
+      "placeholder": "{\"Authorization\": \"Bearer token\"}",
+      "helperText": "Optional JSON object of HTTP headers"
+    },
+    {
+      "id": "body",
+      "label": "Request Body (JSON)",
+      "type": "textarea",
+      "placeholder": "{\"key\": \"value\"}"
+    },
+    {
+      "id": "timeout",
+      "label": "Timeout (ms)",
+      "type": "number",
+      "min": 1000,
+      "max": 30000,
+      "step": 1000,
+      "default": 10000,
+      "helperText": "Request timeout in milliseconds"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/api-connector/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "url": "{{url}}",
+      "method": "{{method}}",
+      "headers": "{{headers}}",
+      "body": "{{body}}",
+      "timeout": "{{timeout}}"
+    }
+  },
+  "outputs": {
+    "type": "json"
+  }
+}

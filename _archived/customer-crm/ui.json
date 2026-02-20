@@ -1,0 +1,80 @@
+{
+  "id": "customer-crm",
+  "name": "Customer CRM",
+  "description": "Customer management with RFM segmentation",
+  "icon": "UserMultiple",
+  "layout": "tabs",
+  "tabs": [
+    { "id": "customers", "label": "Customers", "inputs": ["rfmSegment", "search", "minOrders", "sortBy", "limit"] },
+    { "id": "rfm", "label": "RFM Analytics", "inputs": ["rfmAction"] },
+    { "id": "detail", "label": "Customer Detail", "inputs": ["customerId"] }
+  ],
+  "inputs": [
+    { "id": "rfmSegment", "label": "RFM Segment", "type": "select", "default": "all", "options": [
+      { "value": "all", "text": "All Segments" },
+      { "value": "Champions", "text": "Champions" },
+      { "value": "Loyal Customers", "text": "Loyal Customers" },
+      { "value": "Potential Loyalists", "text": "Potential Loyalists" },
+      { "value": "Recent Customers", "text": "Recent Customers" },
+      { "value": "Promising", "text": "Promising" },
+      { "value": "Need Attention", "text": "Need Attention" },
+      { "value": "About to Sleep", "text": "About to Sleep" },
+      { "value": "At Risk", "text": "At Risk" },
+      { "value": "Cant Lose Them", "text": "Can't Lose Them" },
+      { "value": "Hibernating", "text": "Hibernating" },
+      { "value": "Lost", "text": "Lost" }
+    ]},
+    { "id": "search", "label": "Search", "type": "text", "placeholder": "Phone, name, or email" },
+    { "id": "minOrders", "label": "Min Orders", "type": "number", "min": 0, "default": 0 },
+    { "id": "sortBy", "label": "Sort By", "type": "select", "default": "total_spent", "options": [
+      { "value": "total_spent", "text": "Total Spent" }, { "value": "total_orders", "text": "Total Orders" },
+      { "value": "last_order_at", "text": "Last Order" }, { "value": "average_check", "text": "Avg Check" }
+    ]},
+    { "id": "limit", "label": "Limit", "type": "number", "min": 10, "max": 200, "default": 50 },
+    { "id": "rfmAction", "label": "Action", "type": "select", "default": "analytics", "options": [
+      { "value": "analytics", "text": "View RFM Analytics" }, { "value": "recalculate", "text": "Recalculate Segments" }
+    ]},
+    { "id": "customerId", "label": "Customer ID", "type": "text", "placeholder": "Enter customer UUID" }
+  ],
+  "api": {
+    "url": "/api/skills/customer-crm/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "rfmSegment": "{{rfmSegment}}", "search": "{{search}}", "minOrders": "{{minOrders}}",
+      "sortBy": "{{sortBy}}", "limit": "{{limit}}", "rfmAction": "{{rfmAction}}", "customerId": "{{customerId}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "rows",
+    "columns": [
+      { "key": "name", "header": "Name" },
+      { "key": "phone", "header": "Phone" },
+      { "key": "email", "header": "Email" },
+      { "key": "rfmSegment", "header": "RFM Segment", "type": "tag", "tagType": "status" },
+      { "key": "totalOrders", "header": "Orders" },
+      { "key": "totalSpent", "header": "Total Spent" },
+      { "key": "avgCheck", "header": "Avg Check" },
+      { "key": "lastOrder", "header": "Last Order" },
+      { "key": "wallet", "header": "Wallet" },
+      { "key": "segment", "header": "Segment" },
+      { "key": "count", "header": "Count" },
+      { "key": "percentage", "header": "%" }
+    ]
+  },
+  "filters": [
+    {
+      "id": "filterBySegment",
+      "label": "RFM Segment",
+      "type": "select",
+      "field": "rfmSegment",
+      "options": [
+        { "value": "all", "text": "All" },
+        { "value": "Champions", "text": "Champions" },
+        { "value": "Loyal Customers", "text": "Loyal" },
+        { "value": "At Risk", "text": "At Risk" },
+        { "value": "Lost", "text": "Lost" }
+      ]
+    }
+  ]
+}

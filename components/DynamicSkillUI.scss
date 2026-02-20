@@ -1,0 +1,56 @@
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/type' as *;
+
+.dynamic-skill-ui {
+  padding: $spacing-07;
+}
+
+.skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-07;
+}
+
+.inputs-section {
+  margin-bottom: $spacing-07;
+}
+
+.input-column {
+  margin-bottom: $spacing-05;
+}
+
+.section-title {
+  margin-bottom: $spacing-05;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  padding-bottom: $spacing-03;
+}
+
+.execute-bar {
+  margin-top: $spacing-05;
+  display: flex;
+  gap: $spacing-05;
+}
+
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-05;
+}
+
+.output-section {
+  margin-top: $spacing-07;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+.accordion-content {
+  padding: $spacing-05;
+}
+
+.link-cell {
+  color: var(--cds-link-primary);
+}

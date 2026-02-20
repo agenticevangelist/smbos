@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
   sassOptions: {
     silenceDeprecations: ['legacy-js-api'],
   },
+  serverExternalPackages: [
+    '@whiskeysockets/baileys',
+    'pino',
+    'qrcode-terminal',
+    '@supabase/supabase-js',
+    '@anthropic-ai/sdk',
+    'cheerio',
+    'gray-matter',
+    'js-yaml',
+  ],
 };
 
 export default nextConfig;

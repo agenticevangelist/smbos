@@ -1,0 +1,67 @@
+{
+  "id": "skill-creator",
+  "name": "Skill Creator",
+  "description": "Create new SMBOS skills from templates with auto-generated directory structure",
+  "icon": "Add",
+  "layout": "sections",
+  "sections": [
+    { "id": "identity", "title": "Skill Identity", "inputs": ["skillId", "name", "description"] },
+    { "id": "config", "title": "Configuration", "inputs": ["inputsJson", "outputType"] }
+  ],
+  "inputs": [
+    {
+      "id": "skillId",
+      "label": "Skill ID (slug)",
+      "type": "text",
+      "placeholder": "e.g., email-sender",
+      "required": true,
+      "helperText": "Lowercase letters and hyphens only"
+    },
+    {
+      "id": "name",
+      "label": "Display Name",
+      "type": "text",
+      "placeholder": "e.g., Email Sender",
+      "required": true
+    },
+    {
+      "id": "description",
+      "label": "Description",
+      "type": "textarea",
+      "placeholder": "What does this skill do?",
+      "required": true
+    },
+    {
+      "id": "inputsJson",
+      "label": "Inputs Definition (JSON array)",
+      "type": "textarea",
+      "placeholder": "[{\"id\": \"email\", \"label\": \"Email\", \"type\": \"text\", \"required\": true}]",
+      "helperText": "Define the input fields for this skill"
+    },
+    {
+      "id": "outputType",
+      "label": "Output Type",
+      "type": "select",
+      "default": "json",
+      "options": [
+        { "value": "json", "text": "JSON" },
+        { "value": "table", "text": "Table" },
+        { "value": "cards", "text": "Cards" }
+      ]
+    }
+  ],
+  "api": {
+    "url": "/api/skills/skill-creator/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "skillId": "{{skillId}}",
+      "name": "{{name}}",
+      "description": "{{description}}",
+      "inputsJson": "{{inputsJson}}",
+      "outputType": "{{outputType}}"
+    }
+  },
+  "outputs": {
+    "type": "json"
+  }
+}

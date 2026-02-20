@@ -1,0 +1,73 @@
+{
+  "id": "contract-generator",
+  "name": "Contract Generator",
+  "description": "Generate business contracts using AI field extraction and PDF generation",
+  "icon": "Document",
+  "layout": "sections",
+  "sections": [
+    { "id": "input", "title": "Contract Input", "inputs": ["action", "inputText", "model"] },
+    { "id": "options", "title": "Generation Options", "inputs": ["outputFormat", "overrideFields"] }
+  ],
+  "inputs": [
+    {
+      "id": "action",
+      "label": "Action",
+      "type": "select",
+      "required": true,
+      "default": "preview",
+      "options": [
+        { "value": "preview", "text": "Preview Extracted Fields" },
+        { "value": "generate", "text": "Generate Contract" }
+      ]
+    },
+    {
+      "id": "inputText",
+      "label": "Contract Text / Agreement Details",
+      "type": "textarea",
+      "required": true,
+      "placeholder": "Paste the contract text, agreement details, or client information here..."
+    },
+    {
+      "id": "model",
+      "label": "AI Model",
+      "type": "select",
+      "default": "sonnet",
+      "options": [
+        { "value": "sonnet", "text": "Sonnet (Recommended)" },
+        { "value": "opus", "text": "Opus (Most accurate)" },
+        { "value": "haiku", "text": "Haiku (Fastest)" }
+      ]
+    },
+    {
+      "id": "outputFormat",
+      "label": "Output Format",
+      "type": "select",
+      "default": "markdown",
+      "options": [
+        { "value": "pdf", "text": "PDF" },
+        { "value": "markdown", "text": "Markdown" },
+        { "value": "both", "text": "Both PDF & Markdown" }
+      ]
+    },
+    {
+      "id": "overrideFields",
+      "label": "Override Fields (JSON)",
+      "type": "textarea",
+      "placeholder": "{\"city\": \"Tbilisi\", \"currency\": \"GEL\"}"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/contract-generator/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "action": "{{action}}",
+      "inputText": "{{inputText}}",
+      "model": "{{model}}",
+      "outputFormat": "{{outputFormat}}",
+      "overrideFields": "{{overrideFields}}"
+    }
+  },
+  "outputs": {
+    "type": "json"
+  }
+}
