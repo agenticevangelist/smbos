@@ -32,7 +32,7 @@ export function parseConfigYaml(filePath: string): AgentConfigYaml {
   const data = yaml.load(raw) as Record<string, any> | null;
 
   if (!data) {
-    return { port: undefined, tools: [], schedules: [] };
+    return { port: undefined, tools: [] };
   }
 
   return {
@@ -45,12 +45,6 @@ export function parseConfigYaml(filePath: string): AgentConfigYaml {
       commands: t.commands,
       config: t.config,
       enabled: t.enabled !== false,
-    })) : [],
-    schedules: Array.isArray(data.schedules) ? data.schedules.map((s: any) => ({
-      id: s.id || '',
-      cron: s.cron || '',
-      action: s.action || '',
-      enabled: s.enabled !== false,
     })) : [],
   };
 }
@@ -67,7 +61,7 @@ export function loadAgent(agentDir: string): AgentConfig {
   const configYamlPath = path.join(agentDir, 'config.yaml');
   const config = fs.existsSync(configYamlPath)
     ? parseConfigYaml(configYamlPath)
-    : { port: undefined, tools: [], schedules: [] };
+    : { port: undefined, tools: [] };
 
   return {
     id,

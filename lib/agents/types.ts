@@ -16,17 +16,9 @@ export interface AgentTool {
   enabled: boolean;
 }
 
-export interface AgentSchedule {
-  id: string;
-  cron: string;
-  action: string;
-  enabled: boolean;
-}
-
 export interface AgentConfigYaml {
   port?: number;
   tools: AgentTool[];
-  schedules: AgentSchedule[];
 }
 
 export interface AgentConfig {
@@ -56,8 +48,6 @@ export interface AgentSummary {
   version: string;
   status: AgentRunStatus;
   port?: number;
-  schedulesCount: number;
-  enabledSchedules: number;
   toolsCount: number;
   enabledTools: number;
 }

@@ -549,6 +549,33 @@ export function getAllRegisteredGroups(): Record<string, RegisteredGroup> {
   return result;
 }
 
+// --- Read-only accessors for HTTP API ---
+
+export function getRecentRunLogs(limit: number): TaskRunLog[] {
+  return db
+    .prepare('SELECT * FROM task_run_logs ORDER BY run_at DESC LIMIT ?')
+    .all(limit) as TaskRunLog[];
+}
+
+export function getRecentMessages(
+  chatJid: string,
+  limit: number,
+): Array<{
+  id: string;
+  sender: string;
+  sender_name: string;
+  content: string;
+  timestamp: string;
+  is_from_me: number;
+  is_bot_message: number;
+}> {
+  return db
+    .prepare(
+      'SELECT id, sender, sender_name, content, timestamp, is_from_me, is_bot_message FROM messages WHERE chat_jid = ? ORDER BY timestamp DESC LIMIT ?',
+    )
+    .all(chatJid, limit) as any[];
+}
+
 // --- JSON migration ---
 
 function migrateJsonState(): void {

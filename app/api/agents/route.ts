@@ -53,8 +53,6 @@ ${systemPrompt || `# Identity\n\nYou are ${name}.`}
     const configYaml = `port: null
 
 tools: []
-
-schedules: []
 `;
     fs.writeFileSync(path.join(agentDir, 'config.yaml'), configYaml, 'utf8');
 

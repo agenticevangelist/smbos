@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAgentConfig } from '@/lib/agents/registry';
 import { startAgent, getProcessLogs } from '@/lib/agents/lifecycle';
-import { startScheduler } from '@/lib/agents/scheduler';
 
 async function waitForHealth(port: number, timeoutMs = 10000): Promise<boolean> {
   const interval = 500;
@@ -42,12 +41,6 @@ export async function POST(
 
   try {
     const result = await startAgent(id, force);
-
-    // Start cron schedules if agent has any
-    const enabledSchedules = config.config.schedules.filter(s => s.enabled);
-    if (enabledSchedules.length > 0) {
-      startScheduler(id, result.port, config.config.schedules);
-    }
 
     // Wait for health check
     const healthy = await waitForHealth(result.port);

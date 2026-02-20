@@ -90,6 +90,9 @@ export function AgentChat() {
   const selectedAgent = agents.find(a => a.id === selectedAgentId);
   const agentUrl = selectedAgent?.port ? `http://127.0.0.1:${selectedAgent.port}` : null;
 
+  // Load chat history from NanoClaw when agent becomes healthy
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
   useEffect(() => {
     if (!agentUrl || selectedAgent?.status !== 'running') {
       setIsHealthy(false);
@@ -111,6 +114,32 @@ export function AgentChat() {
     const interval = setInterval(checkHealth, 15000);
     return () => { cancelled = true; clearInterval(interval); };
   }, [agentUrl, selectedAgent?.status]);
+
+  // Fetch history from NanoClaw when healthy
+  useEffect(() => {
+    if (!agentUrl || !isHealthy || historyLoaded) return;
+
+    fetch(`${agentUrl}/api/messages?limit=200`, { signal: AbortSignal.timeout(5000) })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.messages?.length > 0) {
+          const mapped: ChatMessage[] = data.messages.map((m: { content: string; timestamp: string; is_bot_message: number }) => ({
+            role: (m.is_bot_message ? 'assistant' : 'user') as 'user' | 'assistant',
+            content: m.content,
+            timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          }));
+          setMessages(mapped);
+          if (selectedAgentId) saveMessages(selectedAgentId, mapped);
+        }
+        setHistoryLoaded(true);
+      })
+      .catch(() => { setHistoryLoaded(true); });
+  }, [agentUrl, isHealthy, historyLoaded, selectedAgentId]);
+
+  // Reset history loaded flag when switching agents
+  useEffect(() => {
+    setHistoryLoaded(false);
+  }, [selectedAgentId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

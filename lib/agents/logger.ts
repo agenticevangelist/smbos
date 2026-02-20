@@ -7,9 +7,6 @@ export type LogEventType =
   | 'agent:error'
   | 'process:stderr'
   | 'process:stdout'
-  | 'cron:trigger'
-  | 'cron:success'
-  | 'cron:error'
   | 'chat:message'
   | 'chat:response';
 

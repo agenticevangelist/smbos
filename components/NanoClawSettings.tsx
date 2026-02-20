@@ -9,6 +9,7 @@ import {
   RadioButtonGroup,
   RadioButton,
   FormGroup,
+  Toggle,
   Tag,
   Tabs,
   TabList,
@@ -109,6 +110,10 @@ export function NanoClawSettings() {
 
   const updateField = (key: string, value: string) => {
     setConfig(prev => ({ ...prev, [key]: value }));
+  };
+
+  const updateBooleanField = (key: string, value: boolean) => {
+    setConfig(prev => ({ ...prev, [key]: value ? 'true' : 'false' }));
   };
 
   if (loading) {
@@ -222,8 +227,18 @@ export function NanoClawSettings() {
                   value={config.ASSISTANT_NAME || ''}
                   onChange={(e) => updateField('ASSISTANT_NAME', e.target.value)}
                   placeholder="Andy"
-                  helperText="Name used as trigger pattern in WhatsApp (@Name)"
+                  helperText="Assistant identity used across channels"
                 />
+                <div style={{ marginTop: '1rem' }}>
+                  <Toggle
+                    id="assistant-own-number"
+                    labelText="Assistant has own phone number"
+                    toggled={config.ASSISTANT_HAS_OWN_NUMBER === 'true'}
+                    onToggle={(value) => updateBooleanField('ASSISTANT_HAS_OWN_NUMBER', value)}
+                    labelA="No"
+                    labelB="Yes"
+                  />
+                </div>
                 <div style={{ marginTop: '1rem' }}>
                   <TextInput
                     id="http-port"
@@ -232,6 +247,27 @@ export function NanoClawSettings() {
                     onChange={(e) => updateField('HTTP_PORT', e.target.value)}
                     placeholder="3100"
                     helperText="Port for NanoClaw HTTP API"
+                  />
+                </div>
+              </FormGroup>
+
+              <FormGroup legendText="Channels" style={{ marginTop: '1.5rem' }}>
+                <TextInput
+                  id="telegram-bot-token"
+                  labelText="TELEGRAM_BOT_TOKEN"
+                  type="password"
+                  value={config.TELEGRAM_BOT_TOKEN || ''}
+                  onChange={(e) => updateField('TELEGRAM_BOT_TOKEN', e.target.value)}
+                  helperText="Optional. Enables NanoClaw built-in Telegram channel."
+                />
+                <div style={{ marginTop: '1rem' }}>
+                  <Toggle
+                    id="telegram-only"
+                    labelText="Telegram-only mode"
+                    toggled={config.TELEGRAM_ONLY === 'true'}
+                    onToggle={(value) => updateBooleanField('TELEGRAM_ONLY', value)}
+                    labelA="Disabled"
+                    labelB="Enabled"
                   />
                 </div>
               </FormGroup>

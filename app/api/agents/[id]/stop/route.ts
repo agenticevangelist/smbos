@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAgentConfig } from '@/lib/agents/registry';
 import { stopAgent } from '@/lib/agents/lifecycle';
-import { stopScheduler } from '@/lib/agents/scheduler';
 
 export async function POST(
   _request: NextRequest,
@@ -14,7 +13,6 @@ export async function POST(
     return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
   }
 
-  stopScheduler(id);
   const stopped = stopAgent(id);
 
   return NextResponse.json({

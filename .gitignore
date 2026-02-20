@@ -39,6 +39,21 @@ agents/*/.env
 # agent runtime (NanoClaw workspace)
 agents/*/.runtime/
 
+# SMBOS runtime artifacts
+/data/logs/
+/data/sessions/
+/data/ipc/
+/groups/*/logs/
+/store/*.db
+/store/*.sqlite
+/store/*.sqlite3
+
+# Embedded NanoClaw runtime artifacts
+/nanoclaw/data/
+/nanoclaw/logs/
+/nanoclaw/store/
+/nanoclaw/groups/*/logs/
+
 # vercel
 .vercel
 

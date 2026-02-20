@@ -45,8 +45,6 @@ export function getAllAgents(): AgentSummary[] {
       version: agent.frontmatter.version,
       status: status.status,
       port: status.port ?? agent.config.port,
-      schedulesCount: agent.config.schedules.length,
-      enabledSchedules: agent.config.schedules.filter(s => s.enabled).length,
       toolsCount: agent.config.tools.length,
       enabledTools: agent.config.tools.filter(t => t.enabled).length,
     };

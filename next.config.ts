@@ -7,8 +7,6 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: [
     '@whiskeysockets/baileys',
-    'better-sqlite3',
-    'cron-parser',
     'pino',
     'qrcode-terminal',
     '@supabase/supabase-js',
@@ -16,7 +14,6 @@ const nextConfig: NextConfig = {
     'cheerio',
     'gray-matter',
     'js-yaml',
-    'node-cron',
   ],
 };
 

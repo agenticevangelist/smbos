@@ -28,8 +28,6 @@ interface AgentSummary {
   version: string;
   status: 'running' | 'stopped' | 'error';
   port?: number;
-  schedulesCount: number;
-  enabledSchedules: number;
   toolsCount: number;
   enabledTools: number;
 }
@@ -41,7 +39,6 @@ interface AgentDetail {
   systemPrompt: string;
   port: number | null;
   tools: any[];
-  schedules: any[];
   status: string;
   pid?: number;
   uptime?: number;
@@ -61,9 +58,6 @@ const LOG_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   'agent:error': { label: 'ERROR', color: 'red' },
   'process:stderr': { label: 'STDERR', color: 'red' },
   'process:stdout': { label: 'STDOUT', color: 'cyan' },
-  'cron:trigger': { label: 'CRON', color: 'blue' },
-  'cron:success': { label: 'CRON OK', color: 'green' },
-  'cron:error': { label: 'CRON ERR', color: 'red' },
   'chat:message': { label: 'CHAT', color: 'purple' },
   'chat:response': { label: 'REPLY', color: 'teal' },
 };
@@ -278,7 +272,6 @@ export function Agents() {
                 <div style={{ fontSize: '0.8125rem', color: 'var(--cds-text-secondary)' }}>
                   <div>Model: {agent.model}</div>
                   {agent.port && <div>Port: {agent.port}</div>}
-                  <div>Schedules: {agent.enabledSchedules}/{agent.schedulesCount}</div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}
@@ -396,19 +389,6 @@ export function Agents() {
                         {detailAgent.systemPrompt}
                       </CodeSnippet>
                     </div>
-
-                    {detailAgent.schedules.length > 0 && (
-                      <div>
-                        <h5 style={{ marginBottom: '0.5rem' }}>Schedules</h5>
-                        {detailAgent.schedules.map((s: any) => (
-                          <div key={s.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.25rem' }}>
-                            <Tag type={s.enabled ? 'green' : 'cool-gray'} size="sm">{s.enabled ? 'on' : 'off'}</Tag>
-                            <code style={{ fontSize: '0.75rem' }}>{s.cron}</code>
-                            <span style={{ fontSize: '0.8125rem' }}>{s.action}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
 
                     {detailAgent.tools.length > 0 && (
                       <div>

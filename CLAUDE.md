@@ -64,4 +64,8 @@ Key paths: `app/` (router + API), `components/` (7 components), `lib/skills/regi
 
 Skill flow: click skill → fetch ui.json → render form → bodyMapping → POST execute → rootPath extracts result → render.
 
-Incomplete: cron engine, agent chat fallback, skill matcher, `/api/agent/chat`.
+Incomplete: agent chat fallback, skill matcher, `/api/agent/chat`.
+
+Scheduling uses NanoClaw's built-in scheduler (MCP tools: `schedule_task`, `list_tasks`, etc.). No SMBOS-side cron engine.
+Chat history stored server-side in NanoClaw SQLite, loaded via `GET /api/messages`. localStorage used as cache only.
+SMBOS accesses NanoClaw data via its HTTP API (`/api/tasks`, `/api/state`, `/api/messages`) — never reads NanoClaw's SQLite directly.

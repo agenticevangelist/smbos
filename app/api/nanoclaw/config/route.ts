@@ -9,11 +9,18 @@ const MANAGED_KEYS = [
   'CLAUDE_CODE_OAUTH_TOKEN',
   'ANTHROPIC_API_KEY',
   'ASSISTANT_NAME',
+  'ASSISTANT_HAS_OWN_NUMBER',
+  'TELEGRAM_BOT_TOKEN',
+  'TELEGRAM_ONLY',
   'HTTP_PORT',
 ];
 
 // Keys whose values should be masked in GET responses
-const SECRET_KEYS = new Set(['CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_API_KEY']);
+const SECRET_KEYS = new Set([
+  'CLAUDE_CODE_OAUTH_TOKEN',
+  'ANTHROPIC_API_KEY',
+  'TELEGRAM_BOT_TOKEN',
+]);
 
 function parseEnvFile(): Record<string, string> {
   try {
