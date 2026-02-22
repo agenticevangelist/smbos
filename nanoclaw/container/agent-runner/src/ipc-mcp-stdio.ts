@@ -274,6 +274,136 @@ Use available_groups.json to find the JID for a group. The folder name should be
   },
 );
 
+const REQUESTS_DIR = path.join(IPC_DIR, 'requests');
+const RESPONSES_DIR = path.join(IPC_DIR, 'responses');
+
+function writeRequestFile(data: object): void {
+  fs.mkdirSync(REQUESTS_DIR, { recursive: true });
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`;
+  const filepath = path.join(REQUESTS_DIR, filename);
+  const tempPath = `${filepath}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2));
+  fs.renameSync(tempPath, filepath);
+}
+
+async function waitForResponse(requestId: string, timeoutMs = 10000): Promise<object> {
+  const responseFile = path.join(RESPONSES_DIR, `${requestId}.json`);
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (fs.existsSync(responseFile)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(responseFile, 'utf-8'));
+        fs.unlinkSync(responseFile);
+        return data;
+      } catch { /* retry */ }
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  throw new Error('Telegram request timed out');
+}
+
+server.tool(
+  'telegram_list_chats',
+  'List all Telegram chats, groups, and channels the userbot account is a member of. Returns JID (for use in other telegram tools), name, and type (user/group/channel).',
+  {
+    limit: z.number().optional().describe('Maximum number of chats to return (default 100)'),
+  },
+  async (args) => {
+    const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    writeRequestFile({ type: 'telegram_list_chats', requestId, limit: args.limit ?? 100 });
+    try {
+      const response = await waitForResponse(requestId) as { ok: boolean; data?: object[]; error?: string };
+      if (!response.ok) {
+        return { content: [{ type: 'text' as const, text: `Error: ${response.error}` }], isError: true };
+      }
+      const chats = response.data as Array<{ jid: string; name: string; type: string }>;
+      if (!chats.length) {
+        return { content: [{ type: 'text' as const, text: 'No chats found.' }] };
+      }
+      const formatted = chats.map((c) => `[${c.type}] ${c.name} — ${c.jid}`).join('\n');
+      return { content: [{ type: 'text' as const, text: `Telegram chats (${chats.length}):\n${formatted}` }] };
+    } catch (err) {
+      return { content: [{ type: 'text' as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
+  },
+);
+
+server.tool(
+  'telegram_get_messages',
+  'Fetch recent messages from a Telegram chat, group, or channel by its JID (e.g. tgc:1234567890). Returns messages with sender name, sender ID (usable as tgc:{senderId} to message them directly), date, and text.',
+  {
+    jid: z.string().describe('The Telegram chat JID (e.g. tgc:1234567890). Use telegram_list_chats to find JIDs.'),
+    limit: z.number().optional().describe('Number of recent messages to fetch (default 50, max 100)'),
+  },
+  async (args) => {
+    const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    writeRequestFile({ type: 'telegram_get_messages', requestId, chatId: args.jid, limit: Math.min(args.limit ?? 50, 100) });
+    try {
+      const response = await waitForResponse(requestId) as { ok: boolean; data?: object[]; error?: string };
+      if (!response.ok) {
+        return { content: [{ type: 'text' as const, text: `Error: ${response.error}` }], isError: true };
+      }
+      const messages = response.data as Array<{ id: number; text: string; senderName: string; senderId: string; date: string }>;
+      if (!messages.length) {
+        return { content: [{ type: 'text' as const, text: 'No messages found.' }] };
+      }
+      const formatted = messages
+        .map((m) => `[${m.date}] ${m.senderName} (tgc:${m.senderId}): ${m.text}`)
+        .join('\n');
+      return { content: [{ type: 'text' as const, text: `Messages from ${args.jid}:\n${formatted}` }] };
+    } catch (err) {
+      return { content: [{ type: 'text' as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
+  },
+);
+
+server.tool(
+  'telegram_search_chats',
+  'Search for public Telegram channels, groups, and users by keyword. Returns matching results with JID, name, and type. Use this to discover channels/groups you are NOT yet a member of.',
+  {
+    query: z.string().describe('Search query (e.g. "crypto news", "python", channel/group name)'),
+    limit: z.number().optional().describe('Maximum results to return (default 20)'),
+  },
+  async (args) => {
+    const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    writeRequestFile({ type: 'telegram_search_chats', requestId, query: args.query, limit: args.limit ?? 20 });
+    try {
+      const response = await waitForResponse(requestId) as { ok: boolean; data?: object[]; error?: string };
+      if (!response.ok) {
+        return { content: [{ type: 'text' as const, text: `Error: ${response.error}` }], isError: true };
+      }
+      const results = response.data as Array<{ jid: string; name: string; type: string }>;
+      if (!results.length) {
+        return { content: [{ type: 'text' as const, text: `No results found for "${args.query}".` }] };
+      }
+      const formatted = results.map((r) => `[${r.type}] ${r.name} — ${r.jid}`).join('\n');
+      return { content: [{ type: 'text' as const, text: `Search results for "${args.query}" (${results.length}):\n${formatted}` }] };
+    } catch (err) {
+      return { content: [{ type: 'text' as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
+  },
+);
+
+server.tool(
+  'telegram_send_to_chat',
+  'Send a message to any Telegram chat, group, or channel by its JID (e.g. tgc:1234567890). Use telegram_list_chats to find JIDs. Useful for sending to chats other than the current one.',
+  {
+    jid: z.string().describe('The Telegram chat JID (e.g. tgc:1234567890)'),
+    text: z.string().describe('The message text to send'),
+  },
+  async (args) => {
+    const data: Record<string, string> = {
+      type: 'message',
+      chatJid: args.jid,
+      text: args.text,
+      groupFolder,
+      timestamp: new Date().toISOString(),
+    };
+    writeIpcFile(MESSAGES_DIR, data);
+    return { content: [{ type: 'text' as const, text: `Message sent to ${args.jid}.` }] };
+  },
+);
+
 // Start the stdio transport
 const transport = new StdioServerTransport();
 await server.connect(transport);

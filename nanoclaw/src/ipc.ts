@@ -26,6 +26,9 @@ export interface IpcDeps {
     availableGroups: AvailableGroup[],
     registeredJids: Set<string>,
   ) => void;
+  telegramListChats?: (limit: number) => Promise<Array<{ jid: string; name: string; type: string }>>;
+  telegramGetMessages?: (chatId: string, limit: number) => Promise<Array<{ id: number; text: string; senderName: string; senderId: string; date: string }>>;
+  telegramSearchChats?: (query: string, limit: number) => Promise<Array<{ jid: string; name: string; type: string }>>;
 }
 
 let ipcWatcherRunning = false;
@@ -39,6 +42,40 @@ export function startIpcWatcher(deps: IpcDeps): void {
 
   const ipcBaseDir = path.join(DATA_DIR, 'ipc');
   fs.mkdirSync(ipcBaseDir, { recursive: true });
+
+  async function processRequests(sourceGroup: string): Promise<void> {
+    const requestsDir = path.join(ipcBaseDir, sourceGroup, 'requests');
+    const responsesDir = path.join(ipcBaseDir, sourceGroup, 'responses');
+    if (!fs.existsSync(requestsDir)) return;
+
+    const files = fs.readdirSync(requestsDir).filter((f) => f.endsWith('.json'));
+    for (const file of files) {
+      const filePath = path.join(requestsDir, file);
+      try {
+        const req = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        fs.unlinkSync(filePath);
+        fs.mkdirSync(responsesDir, { recursive: true });
+        const responseFile = path.join(responsesDir, `${req.requestId}.json`);
+
+        if (req.type === 'telegram_list_chats' && deps.telegramListChats) {
+          const chats = await deps.telegramListChats(req.limit ?? 100);
+          fs.writeFileSync(responseFile, JSON.stringify({ ok: true, data: chats }));
+        } else if (req.type === 'telegram_get_messages' && deps.telegramGetMessages) {
+          const chatId = (req.chatId as string).replace(/^tgc:/, '');
+          const messages = await deps.telegramGetMessages(chatId, req.limit ?? 50);
+          fs.writeFileSync(responseFile, JSON.stringify({ ok: true, data: messages }));
+        } else if (req.type === 'telegram_search_chats' && deps.telegramSearchChats) {
+          const results = await deps.telegramSearchChats(req.query as string, req.limit ?? 20);
+          fs.writeFileSync(responseFile, JSON.stringify({ ok: true, data: results }));
+        } else {
+          fs.writeFileSync(responseFile, JSON.stringify({ ok: false, error: 'Telegram client not available or unknown request type' }));
+        }
+      } catch (err) {
+        logger.error({ file, sourceGroup, err }, 'Error processing IPC request');
+        try { fs.unlinkSync(filePath); } catch { /* ignore */ }
+      }
+    }
+  }
 
   const processIpcFiles = async () => {
     // Scan all group IPC directories (identity determined by directory)
@@ -111,6 +148,9 @@ export function startIpcWatcher(deps: IpcDeps): void {
           'Error reading IPC messages directory',
         );
       }
+
+      // Process Telegram requests (request-response queries)
+      await processRequests(sourceGroup);
 
       // Process tasks from this group's IPC directory
       try {

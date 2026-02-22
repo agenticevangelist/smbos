@@ -49,6 +49,8 @@ export interface ContainerOutput {
   result: string | null;
   newSessionId?: string;
   error?: string;
+  isStreamChunk?: boolean;
+  streamText?: string;
 }
 
 interface VolumeMount {
@@ -153,6 +155,8 @@ function buildVolumeMounts(
   fs.mkdirSync(path.join(groupIpcDir, 'messages'), { recursive: true });
   fs.mkdirSync(path.join(groupIpcDir, 'tasks'), { recursive: true });
   fs.mkdirSync(path.join(groupIpcDir, 'input'), { recursive: true });
+  fs.mkdirSync(path.join(groupIpcDir, 'requests'), { recursive: true });
+  fs.mkdirSync(path.join(groupIpcDir, 'responses'), { recursive: true });
   mounts.push({
     hostPath: groupIpcDir,
     containerPath: '/workspace/ipc',
@@ -224,6 +228,7 @@ export async function runContainerAgent(
   input: ContainerInput,
   onProcess: (proc: ChildProcess, containerName: string) => void,
   onOutput?: (output: ContainerOutput) => Promise<void>,
+  onStreamText?: (text: string) => Promise<void>,
 ): Promise<ContainerOutput> {
   const startTime = Date.now();
 
@@ -304,7 +309,7 @@ export async function runContainerAgent(
       }
 
       // Stream-parse for output markers
-      if (onOutput) {
+      if (onOutput || onStreamText) {
         parseBuffer += chunk;
         let startIdx: number;
         while ((startIdx = parseBuffer.indexOf(OUTPUT_START_MARKER)) !== -1) {
@@ -318,6 +323,15 @@ export async function runContainerAgent(
 
           try {
             const parsed: ContainerOutput = JSON.parse(jsonStr);
+
+            // Route streamText chunks to dedicated callback
+            if (parsed.streamText && onStreamText) {
+              hadStreamingOutput = true;
+              resetTimeout();
+              outputChain = outputChain.then(() => onStreamText(parsed.streamText!));
+              continue;
+            }
+
             if (parsed.newSessionId) {
               newSessionId = parsed.newSessionId;
             }
@@ -326,7 +340,9 @@ export async function runContainerAgent(
             resetTimeout();
             // Call onOutput for all markers (including null results)
             // so idle timers start even for "silent" query completions.
-            outputChain = outputChain.then(() => onOutput(parsed));
+            if (onOutput) {
+              outputChain = outputChain.then(() => onOutput(parsed));
+            }
           } catch (err) {
             logger.warn(
               { group: group.name, error: err },

@@ -10,6 +10,9 @@ const envConfig = readEnvFile([
   'ASSISTANT_HAS_OWN_NUMBER',
   'TELEGRAM_BOT_TOKEN',
   'TELEGRAM_ONLY',
+  'TELEGRAM_API_ID',
+  'TELEGRAM_API_HASH',
+  'TELEGRAM_CLIENT',
 ]);
 
 export const ASSISTANT_NAME =
@@ -20,6 +23,14 @@ export const TELEGRAM_BOT_TOKEN =
   process.env.TELEGRAM_BOT_TOKEN || envConfig.TELEGRAM_BOT_TOKEN || '';
 export const TELEGRAM_ONLY =
   (process.env.TELEGRAM_ONLY || envConfig.TELEGRAM_ONLY) === 'true';
+export const TELEGRAM_API_ID = parseInt(
+  process.env.TELEGRAM_API_ID || envConfig.TELEGRAM_API_ID || '0',
+  10,
+);
+export const TELEGRAM_API_HASH =
+  process.env.TELEGRAM_API_HASH || envConfig.TELEGRAM_API_HASH || '';
+export const TELEGRAM_CLIENT =
+  (process.env.TELEGRAM_CLIENT || envConfig.TELEGRAM_CLIENT) === 'true';
 export const HTTP_PORT = parseInt(process.env.HTTP_PORT || '3100', 10);
 export const WEB_CHAT_JID = 'web-chat@smbos';
 export const WEB_CHAT_FOLDER = 'web-chat';

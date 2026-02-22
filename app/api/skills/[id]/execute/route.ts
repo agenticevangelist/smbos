@@ -45,8 +45,9 @@ export async function POST(
       return NextResponse.json({ error: `Execution script not found for skill: ${id}. Checked: ${possiblePaths.join(', ')}` }, { status: 404 });
     }
 
-    // Dynamic import the tool
-    const toolModule = await import(`${importPath}`);
+    // Dynamic import the tool (new Function prevents Turbopack from tracing the import path)
+    const load = new Function('p', 'return import(p)') as (p: string) => Promise<any>;
+    const toolModule = await load(importPath);
     
     if (!toolModule || !toolModule.execute) {
       return NextResponse.json({ error: `Execute function not found in tool for skill: ${id}` }, { status: 500 });

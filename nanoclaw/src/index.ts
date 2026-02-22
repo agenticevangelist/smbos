@@ -8,11 +8,15 @@ import {
   MAIN_GROUP_FOLDER,
   POLL_INTERVAL,
   TELEGRAM_BOT_TOKEN,
+  TELEGRAM_API_ID,
+  TELEGRAM_API_HASH,
+  TELEGRAM_CLIENT,
   TRIGGER_PATTERN,
   WEB_CHAT_JID,
   WEB_CHAT_FOLDER,
 } from './config.js';
 import { TelegramChannel } from './channels/telegram.js';
+import { TelegramClientChannel } from './channels/telegram-client.js';
 import {
   ContainerOutput,
   runContainerAgent,
@@ -37,6 +41,7 @@ import { GroupQueue } from './group-queue.js';
 import { escapeXml, findChannel, formatMessages, formatOutbound, stripInternalTags } from './router.js';
 import { Channel, RegisteredGroup } from './types.js';
 import { startHttpServer, stopHttpServer } from './http-server.js';
+import { startIpcWatcher } from './ipc.js';
 import { logger } from './logger.js';
 
 // Re-export for backwards compatibility during refactor
@@ -97,6 +102,7 @@ async function runAgent(
   prompt: string,
   chatJid: string,
   onOutput?: (output: ContainerOutput) => Promise<void>,
+  onStreamText?: (text: string) => Promise<void>,
 ): Promise<'success' | 'error'> {
   const isMain = group.folder === MAIN_GROUP_FOLDER;
   const sessionId = sessions[group.folder];
@@ -149,6 +155,7 @@ async function runAgent(
       },
       (proc, containerName) => queue.registerProcess(chatJid, proc, containerName, group.folder),
       wrappedOnOutput,
+      onStreamText,
     );
 
     if (output.newSessionId) {
@@ -250,29 +257,88 @@ async function processGroupMessages(chatJid: string): Promise<boolean> {
 
   const prompt = formatMessages(messages);
 
-  const result = await runAgent(group, prompt, chatJid, async (output) => {
-    if (output.result) {
-      const raw = typeof output.result === 'string' ? output.result : JSON.stringify(output.result);
-      const text = formatOutbound(raw);
-      if (text) {
-        await channel.sendMessage(chatJid, text);
-        // Store bot response in DB
-        storeMessageDirect({
-          id: `bot-${Date.now()}`,
-          chat_jid: chatJid,
-          sender: 'bot',
-          sender_name: ASSISTANT_NAME,
-          content: text,
-          timestamp: new Date().toISOString(),
-          is_from_me: true,
-          is_bot_message: true,
-        });
+  // Streaming state for channels that support editMessage (e.g. Telegram)
+  const canStream = !!(channel.sendAndGetId && channel.editMessage);
+  let streamMsgId: number | null = null;
+  let streamAccum = '';
+  let lastEditMs = 0;
+  let hadStreamText = false;
+  const STREAM_THROTTLE_MS = 2000;
+
+  const result = await runAgent(group, prompt, chatJid,
+    // onOutput — handles isStreamChunk (fallback) and final result
+    async (output) => {
+      // isStreamChunk = full assistant turn text. Skip if token-level streaming
+      // (streamText via preload) is active — it already sent progressive updates.
+      if (output.isStreamChunk) {
+        if (hadStreamText) return; // preload handled it
+        // Fallback: if preload didn't fire, use turn-level streaming
+        if (output.result && canStream) {
+          const raw = typeof output.result === 'string' ? output.result : JSON.stringify(output.result);
+          const text = formatOutbound(raw);
+          if (!text) return;
+          if (!streamMsgId) {
+            streamMsgId = await channel.sendAndGetId!(chatJid, text);
+            lastEditMs = Date.now();
+          } else {
+            await channel.editMessage!(chatJid, streamMsgId, text);
+            lastEditMs = Date.now();
+          }
+        }
+        return;
       }
-    }
-    if (output.status === 'error' && output.error) {
-      logger.error({ chatJid, error: output.error }, 'Agent error during message processing');
-    }
-  });
+
+      // Final result
+      if (output.result) {
+        const raw = typeof output.result === 'string' ? output.result : JSON.stringify(output.result);
+        const text = formatOutbound(raw);
+        if (text) {
+          if (streamMsgId && channel.editMessage) {
+            // Edit the streaming message with clean final text
+            await channel.editMessage(chatJid, streamMsgId, text);
+          } else {
+            await channel.sendMessage(chatJid, text);
+          }
+          // Store bot response in DB
+          storeMessageDirect({
+            id: `bot-${Date.now()}`,
+            chat_jid: chatJid,
+            sender: 'bot',
+            sender_name: ASSISTANT_NAME,
+            content: text,
+            timestamp: new Date().toISOString(),
+            is_from_me: true,
+            is_bot_message: true,
+          });
+        }
+      }
+      if (output.status === 'error' && output.error) {
+        logger.error({ chatJid, error: output.error }, 'Agent error during message processing');
+      }
+
+      // Reset streaming state so the next response creates a fresh message
+      streamMsgId = null;
+      streamAccum = '';
+      hadStreamText = false;
+    },
+    // onStreamText — token-level streaming from preload fetch interceptor
+    canStream
+      ? async (text) => {
+          hadStreamText = true;
+          streamAccum += text;
+          const cleaned = stripInternalTags(streamAccum);
+          if (!cleaned) return;
+          const now = Date.now();
+          if (!streamMsgId) {
+            streamMsgId = await channel.sendAndGetId!(chatJid, cleaned);
+            lastEditMs = now;
+          } else if (now - lastEditMs >= STREAM_THROTTLE_MS) {
+            await channel.editMessage!(chatJid, streamMsgId, cleaned);
+            lastEditMs = now;
+          }
+        }
+      : undefined,
+  );
 
   await channel.setTyping?.(chatJid, false);
 
@@ -304,6 +370,17 @@ async function main(): Promise<void> {
   logger.info('Database initialized');
   loadState();
 
+  // Global additional mounts — applied to all groups
+  const globalMounts = {
+    additionalMounts: [
+      {
+        hostPath: '~/Desktop/retree/combined-vault',
+        containerPath: 'combined-vault',
+        readonly: false,
+      },
+    ],
+  };
+
   // Auto-register web-chat group for HTTP sidebar
   if (!registeredGroups[WEB_CHAT_JID]) {
     registerGroup(WEB_CHAT_JID, {
@@ -312,7 +389,16 @@ async function main(): Promise<void> {
       trigger: '',
       added_at: new Date().toISOString(),
       requiresTrigger: false,
+      containerConfig: globalMounts,
     });
+  }
+
+  // Ensure all registered groups have the global mounts
+  for (const [jid, group] of Object.entries(registeredGroups)) {
+    if (!group.containerConfig?.additionalMounts?.length) {
+      group.containerConfig = globalMounts;
+      setRegisteredGroup(jid, group);
+    }
   }
 
   // Start HTTP server for web chat
@@ -340,6 +426,9 @@ async function main(): Promise<void> {
     const prompt = `<messages>\n<message sender="User" time="${timestamp}">${escapeXml(message)}</message>\n</messages>`;
 
     const result = await runAgent(group, prompt, WEB_CHAT_JID, async (output) => {
+      // Skip stream chunks for web-chat — SSE sends final result only
+      if (output.isStreamChunk) return;
+
       if (output.result) {
         const raw = typeof output.result === 'string' ? output.result : JSON.stringify(output.result);
         const text = raw.replace(/<internal>[\s\S]*?<\/internal>/g, '').trim();
@@ -371,8 +460,20 @@ async function main(): Promise<void> {
   // Connect Telegram channel if token is configured
   if (TELEGRAM_BOT_TOKEN) {
     const telegram = new TelegramChannel(TELEGRAM_BOT_TOKEN, {
+      dataDir: DATA_DIR,
       onMessage: (chatJid, msg) => {
         storeMessage(msg);
+        // If this chat already has an active container session, forward
+        // follow-up user text directly via IPC instead of waiting for idle timeout.
+        const forwarded = queue.sendMessage(chatJid, formatMessages([msg]));
+        if (forwarded) {
+          const prevTs = lastTimestamps[chatJid];
+          if (!prevTs || msg.timestamp > prevTs) {
+            lastTimestamps[chatJid] = msg.timestamp;
+            setRouterState('last_agent_timestamp', JSON.stringify(lastTimestamps));
+          }
+          return;
+        }
         queue.enqueueMessageCheck(chatJid);
       },
       onChatMetadata: storeChatMetadata,
@@ -382,6 +483,62 @@ async function main(): Promise<void> {
     await telegram.connect();
     logger.info('Telegram channel connected');
   }
+
+  // Connect Telegram client (userbot) if configured
+  let telegramClientRef: import('./channels/telegram-client.js').TelegramClientChannel | null = null;
+  if (TELEGRAM_CLIENT && TELEGRAM_API_ID && TELEGRAM_API_HASH) {
+    const sessionPath = path.join(DATA_DIR, '..', 'store', 'telegram-client-session.txt');
+    const telegramClient = new TelegramClientChannel({
+      apiId: TELEGRAM_API_ID,
+      apiHash: TELEGRAM_API_HASH,
+      sessionPath,
+      onMessage: (chatJid, msg) => {
+        storeMessage(msg);
+        const forwarded = queue.sendMessage(chatJid, formatMessages([msg]));
+        if (forwarded) {
+          const prevTs = lastTimestamps[chatJid];
+          if (!prevTs || msg.timestamp > prevTs) {
+            lastTimestamps[chatJid] = msg.timestamp;
+            setRouterState('last_agent_timestamp', JSON.stringify(lastTimestamps));
+          }
+          return;
+        }
+        queue.enqueueMessageCheck(chatJid);
+      },
+      onChatMetadata: storeChatMetadata,
+      registeredGroups: () => registeredGroups,
+    });
+    channels.push(telegramClient);
+    await telegramClient.connect();
+    telegramClientRef = telegramClient;
+    logger.info('Telegram client channel connected');
+  }
+
+  // Start IPC watcher (processes send_message, task commands, and Telegram queries from containers)
+  startIpcWatcher({
+    sendMessage: async (jid: string, text: string) => {
+      const channel = findChannel(channels, jid);
+      if (channel) {
+        await channel.sendMessage(jid, text);
+      } else {
+        logger.warn({ jid }, 'IPC send_message: no channel found for JID');
+      }
+    },
+    registeredGroups: () => registeredGroups,
+    registerGroup,
+    syncGroupMetadata: async () => {},
+    getAvailableGroups,
+    writeGroupsSnapshot,
+    telegramListChats: telegramClientRef
+      ? (limit) => telegramClientRef!.listDialogs(limit)
+      : undefined,
+    telegramGetMessages: telegramClientRef
+      ? (chatId, limit) => telegramClientRef!.fetchMessages(chatId, limit)
+      : undefined,
+    telegramSearchChats: telegramClientRef
+      ? (query, limit) => telegramClientRef!.searchChats(query, limit)
+      : undefined,
+  });
 
   // Start message processing loop for channel-based chats
   if (channels.length > 0) {

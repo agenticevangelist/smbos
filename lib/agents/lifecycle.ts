@@ -36,13 +36,36 @@ export function getProcessLogs(agentId: string): { stderr: string; stdout: strin
 }
 
 const NANOCLAW_DIR = path.join(process.cwd(), 'nanoclaw');
-const NANOCLAW_BINARY = path.join(NANOCLAW_DIR, 'dist', 'index.js');
 const AGENTS_DIR = path.join(process.cwd(), 'agents');
+
+function parseEnvFile(filePath: string): Record<string, string> {
+  if (!fs.existsSync(filePath)) return {};
+  const out: Record<string, string> = {};
+  const content = fs.readFileSync(filePath, 'utf8');
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const eq = line.indexOf('=');
+    if (eq === -1) continue;
+    const key = line.slice(0, eq).trim();
+    const value = line.slice(eq + 1).trim();
+    if (key) out[key] = value;
+  }
+  return out;
+}
+
+function writeEnvFile(filePath: string, values: Record<string, string>): void {
+  const lines = Object.entries(values)
+    .filter(([, v]) => v !== '')
+    .map(([k, v]) => `${k}=${v}`);
+  fs.writeFileSync(filePath, lines.join('\n') + '\n', 'utf8');
+}
 
 /** Find the PID listening on a given port, or null */
 function findPidOnPort(port: number): number | null {
   try {
-    const out = execSync(`lsof -ti :${port}`, { encoding: 'utf-8', timeout: 3000 });
+    const lsofBin = fs.existsSync('/usr/sbin/lsof') ? '/usr/sbin/lsof' : 'lsof';
+    const out = execSync(`${lsofBin} -ti :${port}`, { encoding: 'utf-8', timeout: 3000 });
     const pid = parseInt(out.trim().split('\n')[0], 10);
     return isNaN(pid) ? null : pid;
   } catch {
@@ -119,12 +142,16 @@ function prepareRuntime(agentDir: string, systemPrompt: string): void {
   // Write system prompt for NanoClaw's web-chat group
   fs.writeFileSync(path.join(groupDir, 'CLAUDE.md'), systemPrompt, 'utf8');
 
-  // If agent has its own .env, merge auth tokens into NanoClaw's .env
+  // If agent has its own .env, merge it into NanoClaw's .env without
+  // dropping runtime keys (e.g. TELEGRAM_BOT_TOKEN) that may exist only
+  // in the base NanoClaw environment.
   const agentEnv = path.join(agentDir, '.env');
   if (fs.existsSync(agentEnv)) {
     const nanoclawEnv = path.join(NANOCLAW_DIR, '.env');
-    // Agent .env takes priority — copy it over
-    fs.copyFileSync(agentEnv, nanoclawEnv);
+    const baseEnv = parseEnvFile(nanoclawEnv);
+    const agentValues = parseEnvFile(agentEnv);
+    const merged = { ...baseEnv, ...agentValues };
+    writeEnvFile(nanoclawEnv, merged);
   }
 }
 
@@ -160,14 +187,18 @@ export async function startAgent(agentId: string, force = false): Promise<{ pid:
   }
 
   // Verify NanoClaw binary exists
-  if (!fs.existsSync(NANOCLAW_BINARY)) {
-    throw new Error(`NanoClaw binary not found at ${NANOCLAW_BINARY}. Run: cd nanoclaw && npm run build`);
+  const binaryPath = NANOCLAW_DIR + '/dist/index.js';
+  if (!fs.existsSync(binaryPath)) {
+    throw new Error(`NanoClaw binary not found at ${binaryPath}. Run: cd nanoclaw && npm run build`);
   }
 
   // Prepare NanoClaw runtime (writes CLAUDE.md, copies .env)
   prepareRuntime(agentDir, agent.systemPrompt);
+  const nanoclawEnv = parseEnvFile(path.join(NANOCLAW_DIR, '.env'));
 
-  const child = spawn('node', [NANOCLAW_BINARY], {
+  // Wrap spawn in new Function to prevent Turbopack from tracing the file path as a module
+  const spawnChild = new Function('s', 'a', 'o', 'return s(...a, o)') as (...args: any[]) => ChildProcess;
+  const child = spawnChild(spawn, ['node', [binaryPath]], {
     cwd: NANOCLAW_DIR,
     stdio: 'pipe',
     detached: true,
@@ -175,6 +206,9 @@ export async function startAgent(agentId: string, force = false): Promise<{ pid:
       ...process.env,
       HTTP_PORT: String(port),
       ASSISTANT_NAME: agent.frontmatter.name,
+      ...(process.env.TZ || nanoclawEnv.TZ
+        ? { TZ: process.env.TZ || nanoclawEnv.TZ }
+        : {}),
     },
   });
 

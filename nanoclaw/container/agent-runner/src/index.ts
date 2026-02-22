@@ -34,6 +34,7 @@ interface ContainerOutput {
   result: string | null;
   newSessionId?: string;
   error?: string;
+  isStreamChunk?: boolean;
 }
 
 interface SessionEntry {
@@ -460,6 +461,18 @@ async function runQuery(
 
     if (message.type === 'assistant' && 'uuid' in message) {
       lastAssistantUuid = (message as { uuid: string }).uuid;
+
+      // Emit intermediate assistant text as stream chunks for progressive display
+      const msgContent = (message as { message?: { content?: Array<{ type: string; text?: string }> } }).message?.content;
+      if (msgContent) {
+        const text = msgContent
+          .filter((c) => c.type === 'text' && c.text)
+          .map((c) => c.text!)
+          .join('');
+        if (text.trim()) {
+          writeOutput({ status: 'success', result: text, isStreamChunk: true });
+        }
+      }
     }
 
     if (message.type === 'system' && message.subtype === 'init') {

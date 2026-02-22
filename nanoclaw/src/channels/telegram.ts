@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 import { Bot } from 'grammy';
 
 import {
@@ -12,6 +15,7 @@ export interface TelegramChannelOpts {
   onMessage: OnInboundMessage;
   onChatMetadata: OnChatMetadata;
   registeredGroups: () => Record<string, RegisteredGroup>;
+  dataDir?: string; // root data dir for saving media files
 }
 
 export class TelegramChannel implements Channel {
@@ -46,6 +50,39 @@ export class TelegramChannel implements Channel {
 
     this.bot.command('ping', (ctx) => {
       ctx.reply(`${ASSISTANT_NAME} is online.`);
+    });
+
+    this.bot.command('digest', async (ctx) => {
+      const chatJid = `tg:${ctx.chat.id}`;
+      const group = this.opts.registeredGroups()[chatJid];
+      if (!group) {
+        await ctx.reply('This chat is not registered. Use /chatid to get the ID and register it first.');
+        return;
+      }
+
+      const timestamp = new Date().toISOString();
+      const senderName =
+        ctx.from?.first_name ||
+        ctx.from?.username ||
+        ctx.from?.id.toString() ||
+        'User';
+      const sender = ctx.from?.id.toString() || '';
+      const limitArg = ctx.match ? parseInt(ctx.match.trim(), 10) : NaN;
+      const limit = !isNaN(limitArg) && limitArg > 0 ? limitArg : 5;
+
+      this.opts.onChatMetadata(chatJid, timestamp);
+      this.opts.onMessage(chatJid, {
+        id: `digest-${Date.now()}`,
+        chat_jid: chatJid,
+        sender,
+        sender_name: senderName,
+        content: `@${ASSISTANT_NAME} /digest limit=${limit}`,
+        timestamp,
+        is_from_me: false,
+      });
+
+      await ctx.reply('Читаю каналы, готовлю дайджест...');
+      logger.info({ chatJid, limit }, 'Digest command triggered');
     });
 
     this.bot.on('message:text', async (ctx) => {
@@ -135,7 +172,56 @@ export class TelegramChannel implements Channel {
       });
     };
 
-    this.bot.on('message:photo', (ctx) => storeNonText(ctx, '[Photo]'));
+    this.bot.on('message:photo', async (ctx) => {
+      const chatJid = `tg:${ctx.chat.id}`;
+      const group = this.opts.registeredGroups()[chatJid];
+      if (!group) return;
+
+      const timestamp = new Date(ctx.message.date * 1000).toISOString();
+      const senderName =
+        ctx.from?.first_name || ctx.from?.username || ctx.from?.id?.toString() || 'Unknown';
+      const rawCaption = ctx.message.caption ? `\nCaption: ${ctx.message.caption}` : '';
+
+      let content = `[Photo]${rawCaption}`;
+
+      if (this.opts.dataDir) {
+        try {
+          // Get highest-resolution photo
+          const photos = ctx.message.photo;
+          const largest = photos[photos.length - 1];
+          const file = await ctx.api.getFile(largest.file_id);
+
+          if (file.file_path) {
+            const fileUrl = `https://api.telegram.org/file/bot${this.botToken}/${file.file_path}`;
+            const response = await fetch(fileUrl);
+            const buffer = Buffer.from(await response.arrayBuffer());
+
+            const mediaDir = path.join(this.opts.dataDir, 'ipc', group.folder, 'media');
+            fs.mkdirSync(mediaDir, { recursive: true });
+
+            const ext = path.extname(file.file_path) || '.jpg';
+            const filename = `photo_${ctx.message.message_id}${ext}`;
+            fs.writeFileSync(path.join(mediaDir, filename), buffer);
+
+            content = `[Photo: /workspace/ipc/media/${filename}]${rawCaption}`;
+            logger.debug({ chatJid, filename }, 'Telegram photo saved');
+          }
+        } catch (err) {
+          logger.warn({ err }, 'Failed to download Telegram photo, using placeholder');
+        }
+      }
+
+      this.opts.onChatMetadata(chatJid, timestamp);
+      this.opts.onMessage(chatJid, {
+        id: ctx.message.message_id.toString(),
+        chat_jid: chatJid,
+        sender: ctx.from?.id?.toString() || '',
+        sender_name: senderName,
+        content,
+        timestamp,
+        is_from_me: false,
+      });
+    });
     this.bot.on('message:video', (ctx) => storeNonText(ctx, '[Video]'));
     this.bot.on('message:voice', (ctx) => storeNonText(ctx, '[Voice message]'));
     this.bot.on('message:audio', (ctx) => storeNonText(ctx, '[Audio]'));
@@ -181,16 +267,56 @@ export class TelegramChannel implements Channel {
       const numericId = jid.replace(/^tg:/, '');
 
       const MAX_LENGTH = 4096;
-      if (text.length <= MAX_LENGTH) {
-        await this.bot.api.sendMessage(numericId, text);
-      } else {
-        for (let i = 0; i < text.length; i += MAX_LENGTH) {
-          await this.bot.api.sendMessage(numericId, text.slice(i, i + MAX_LENGTH));
+      const chunks = text.length <= MAX_LENGTH
+        ? [text]
+        : Array.from({ length: Math.ceil(text.length / MAX_LENGTH) }, (_, i) =>
+            text.slice(i * MAX_LENGTH, (i + 1) * MAX_LENGTH));
+
+      for (const chunk of chunks) {
+        try {
+          await this.bot.api.sendMessage(numericId, chunk, { parse_mode: 'Markdown' });
+        } catch {
+          await this.bot.api.sendMessage(numericId, chunk);
         }
       }
       logger.info({ jid, length: text.length }, 'Telegram message sent');
     } catch (err) {
       logger.error({ jid, err }, 'Failed to send Telegram message');
+    }
+  }
+
+  async sendAndGetId(jid: string, text: string): Promise<number> {
+    if (!this.bot) throw new Error('Telegram bot not initialized');
+
+    const numericId = jid.replace(/^tg:/, '');
+    const MAX_LENGTH = 4096;
+    const trimmed = text.length > MAX_LENGTH ? text.slice(0, MAX_LENGTH - 3) + '...' : text;
+    let result;
+    try {
+      result = await this.bot.api.sendMessage(numericId, trimmed, { parse_mode: 'Markdown' });
+    } catch {
+      result = await this.bot.api.sendMessage(numericId, trimmed);
+    }
+    logger.debug({ jid, messageId: result.message_id }, 'Telegram streaming message sent');
+    return result.message_id;
+  }
+
+  async editMessage(jid: string, messageId: number, text: string): Promise<void> {
+    if (!this.bot) return;
+
+    try {
+      const numericId = jid.replace(/^tg:/, '');
+      const MAX_LENGTH = 4096;
+      const trimmed = text.length > MAX_LENGTH ? text.slice(0, MAX_LENGTH - 3) + '...' : text;
+      try {
+        await this.bot.api.editMessageText(numericId, messageId, trimmed, { parse_mode: 'Markdown' });
+      } catch {
+        await this.bot.api.editMessageText(numericId, messageId, trimmed);
+      }
+    } catch (err: any) {
+      // Telegram returns 400 if text is unchanged — ignore silently
+      if (err?.description?.includes('message is not modified')) return;
+      logger.debug({ jid, messageId, err }, 'Failed to edit Telegram message');
     }
   }
 
