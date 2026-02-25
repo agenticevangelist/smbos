@@ -1,0 +1,558 @@
+@use '@carbon/react/scss/type' as *;
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/colors' as *;
+@use '@carbon/react/scss/breakpoint' as *;
+
+// App Shell Container - Flex Row
+.app-shell {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--cds-background);
+}
+
+// SHARED SIDEBAR STYLES
+.left-sidebar, .right-sidebar {
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden; // Hide content when width is 0
+  background-color: #191919; // Notion Sidebar BG
+  z-index: 100;
+  color: rgba(255,255,255,0.81);
+  
+  &.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    border: none;
+    flex: 0 0 0 !important;
+  }
+}
+
+.left-sidebar {
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.right-sidebar {
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+
+// RESIZERS — overlaid on sidebar edges, no extra space
+.resizer {
+  width: 6px;
+  margin-left: -3px;
+  margin-right: -3px;
+  cursor: col-resize;
+  background-color: transparent;
+  z-index: 1000;
+  flex-shrink: 0;
+  position: relative;
+
+  &:hover, &.resizing {
+    background-color: var(--cds-interactive-01);
+  }
+}
+
+// MAIN AREA
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  position: relative;
+}
+
+// Custom minimal header
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 8px;
+  background-color: #191919;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+  z-index: 90;
+
+  &__left, &__right {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    margin-left: 4px;
+    letter-spacing: 0.5px;
+    user-select: none;
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover {
+      background-color: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.95);
+    }
+
+    &:active {
+      background-color: rgba(255,255,255,0.12);
+    }
+
+    svg {
+      fill: currentColor;
+    }
+  }
+}
+
+// Main content area
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-07 $spacing-05;
+  background-color: var(--cds-background);
+  display: flex;
+  justify-content: center;
+
+  > * {
+    width: 100%;
+    max-width: 960px;
+  }
+}
+
+
+// Custom Sidebar Navigation (Notion-style)
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0; // Tighter padding
+  gap: 2px;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 12px;
+}
+
+.sidebar-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  padding: 0 12px;
+  margin-bottom: 6px;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 20px;
+  
+  button {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  &:hover button {
+    opacity: 1;
+  }
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  min-height: 28px;
+  border-radius: 0;
+  cursor: pointer;
+  color: rgba(255,255,255,0.81);
+  transition: background-color 0.1s;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+
+  &:hover {
+    background-color: rgba(255,255,255,0.055);
+    color: rgba(255,255,255,1);
+  }
+
+  &.active {
+    background-color: rgba(255,255,255,0.08); // Slightly stronger for active
+    color: rgba(255,255,255,1);
+  }
+
+  svg {
+    fill: currentColor;
+    opacity: 0.7;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.sidebar-workspace-switcher {
+  padding: 6px 12px;
+  margin: 8px 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background-color 0.1s;
+  height: 32px;
+  
+  &:hover {
+    background-color: rgba(255,255,255,0.055);
+  }
+
+  .workspace-icon {
+    width: 18px;
+    height: 18px;
+    background-color: var(--cds-interactive-01);
+    color: #fff;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 10px;
+  }
+
+  .workspace-details {
+    display: flex;
+    flex-direction: row; // Notion is typically one line or very compact
+    align-items: center;
+    gap: 6px;
+    
+    .workspace-name {
+      font-size: 14px;
+      color: rgba(255,255,255,0.9);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .workspace-plan {
+      display: none; // Hide plan for compactness like Notion default usually just shows name
+    }
+  }
+  
+  .workspace-chevron {
+    margin-left: auto;
+    opacity: 0.5;
+    color: rgba(255,255,255,0.6);
+  }
+}
+
+.sidebar-content {
+  padding: 0 !important; 
+  background-color: transparent; 
+}
+
+// Hide Carbon ContainedList styling overrides if any
+
+.panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.panel-header {
+  padding: 0 $spacing-05;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background-color: #191919;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  flex-shrink: 0;
+
+  h3 {
+    @include type-style('heading-02');
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--cds-text-primary);
+    font-weight: 600;
+  }
+}
+
+// Chat sidebar header
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 8px;
+  background-color: #191919;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+
+}
+
+.chat-agent-select {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 0;
+  background-color: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='rgba(255,255,255,0.5)' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+
+  &:hover {
+    background-color: rgba(255,255,255,0.1);
+  }
+
+  &:focus {
+    outline: 1px solid rgba(255,255,255,0.2);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  option {
+    background-color: #191919;
+    color: rgba(255,255,255,0.9);
+  }
+}
+
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  // background-color: var(--cds-background); // Removed to keep sidebar bg
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  .cds--contained-list {
+    margin-bottom: $spacing-05;
+  }
+
+  .active-item {
+    background-color: rgba(255,255,255,0.08) !important;
+    border-left: none; // Notion uses bg color, not border
+    
+    .cds--contained-list-item__content {
+      font-weight: 600;
+    }
+  }
+}
+
+.sidebar-footer {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background-color: #191919;
+  display: flex;
+  align-items: stretch;
+  min-height: auto;
+  padding: 8px 0;
+}
+
+// Chat Messages (inside .sidebar-content)
+.chat-messages {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.chat-input-area {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+// Chat Specific Styles
+.chat-message {
+  width: 100%;
+  padding: $spacing-05;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  background-color: transparent;
+  color: var(--cds-text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-02;
+  
+  &.user {
+    background-color: var(--cds-layer-01);
+  }
+}
+
+.chat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--cds-text-secondary);
+  padding: $spacing-05;
+  text-align: center;
+}
+
+.message-content {
+  @include type-style('body-01');
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: flex-end;
+  color: var(--cds-text-secondary);
+  @include type-style('label-01');
+}
+
+.left-input-container {
+  flex: 1;
+  .cds--text-area__label-wrapper { display: none !important; }
+  .cds--text-area__wrapper {
+    border: none !important;
+    background: transparent;
+    &:focus-within { border-top: 2px solid var(--cds-interactive-01) !important; }
+  }
+  .cds--text-area {
+    resize: none !important;
+    border: none !important;
+    background: transparent;
+  }
+}
+
+.right-button-container {
+  display: flex;
+  align-items: flex-start;
+}
+
+.typing-cursor {
+  display: inline-block;
+  animation: blink 0.8s step-end infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.loading-indicator {
+  padding: $spacing-05;
+}
+
+// Project Navigation
+.sidebar-accordion {
+  .cds--accordion__item {
+    border-bottom: 1px solid var(--cds-border-subtle);
+    
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .cds--accordion__heading {
+    padding: $spacing-02 $spacing-03;
+  }
+  
+  .cds--accordion__title {
+    @include type-style('body-01');
+    font-weight: 500;
+  }
+  
+  .cds--accordion__content {
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.project-nav-group {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
+}
+
+.project-subtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  padding: 4px 12px;
+  padding-left: 24px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-item.nested {
+  padding-left: 24px; // Indent
+  
+  &.deep {
+    padding-left: 40px; // Deeper indent for agents inside group
+  }
+
+  &.add-item {
+     color: rgba(255,255,255,0.5);
+     font-size: 12px;
+     
+     &:hover {
+        background-color: rgba(255,255,255,0.055);
+        color: rgba(255,255,255,0.8);
+     }
+  }
+}
+
+// Expandable animation
+.expandable {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+  overflow: hidden;
+
+  &.expanded {
+    grid-template-rows: 1fr;
+  }
+
+  .expandable-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+.nested-list {
+  background-color: rgba(0, 0, 0, 0.2);
+  margin-top: 2px;
+  margin-bottom: 2px;
+}

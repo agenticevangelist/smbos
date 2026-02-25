@@ -1,0 +1,78 @@
+{
+  "id": "google-maps-leads",
+  "name": "Google Maps Leads",
+  "description": "Search for businesses on Google Maps and filter them based on various criteria",
+  "icon": "Location",
+  "inputs": [
+    {
+      "id": "query",
+      "label": "What are you looking for?",
+      "type": "text",
+      "placeholder": "e.g., clothing stores, restaurants",
+      "required": true
+    },
+    {
+      "id": "location",
+      "label": "Location",
+      "type": "text",
+      "placeholder": "e.g., Yerevan, Armenia",
+      "required": true
+    },
+    {
+      "id": "maxResults",
+      "label": "Max results",
+      "type": "number",
+      "min": 20,
+      "max": 500,
+      "step": 10,
+      "default": 100,
+      "helperText": "More = longer search & higher cost"
+    }
+  ],
+  "api": {
+    "url": "/api/skills/google-maps-leads/execute",
+    "method": "POST",
+    "bodyMapping": {
+      "query": "{{query}}",
+      "location": "{{location}}",
+      "maxResults": "{{maxResults}}"
+    }
+  },
+  "outputs": {
+    "type": "table",
+    "rootPath": "leads",
+    "columns": [
+      { "key": "name", "header": "Business Name" },
+      { "key": "address", "header": "Address" },
+      { "key": "rating", "header": "Rating", "type": "tag", "tagType": "rating" },
+      { "key": "reviewCount", "header": "Reviews" },
+      { "key": "website", "header": "Website", "type": "linkOrTag" },
+      { "key": "phone", "header": "Phone" },
+      { "key": "category", "header": "Category" }
+    ]
+  },
+  "filters": [
+    {
+      "id": "filterByInstagram",
+      "label": "Has Instagram link",
+      "type": "checkbox",
+      "field": "hasInstagram"
+    },
+    {
+      "id": "filterByWebsite",
+      "label": "Has any website",
+      "type": "checkbox",
+      "field": "website"
+    },
+    {
+      "id": "ratingCondition",
+      "label": "Rating condition",
+      "type": "select",
+      "options": [
+        { "value": "all", "text": "All ratings" },
+        { "value": "good", "text": "Good ratings (4.0+)" },
+        { "value": "bad", "text": "Bad ratings (<4.0)" }
+      ]
+    }
+  ]
+}
