@@ -11,7 +11,6 @@
   --cds-code-font: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
-// Global Resets for Notion-like Vibe
 * {
   box-sizing: border-box;
 }
@@ -19,8 +18,8 @@
 html, body {
   height: 100%;
   width: 100%;
-  background-color: #191919; // Deep dark background
-  color: rgba(255, 255, 255, 0.9);
+  background-color: var(--cds-background);
+  color: var(--cds-text-primary);
   font-family: var(--cds-body-font);
   -webkit-font-smoothing: antialiased;
 }
@@ -30,111 +29,101 @@ html, body {
 // =============================================================================
 
 // --- BUTTONS ---
-// Resetting Carbon buttons to be minimal, flat, and flex-aligned
 .cds--btn {
   border-radius: 0 !important;
-  text-transform: none !important; // No all-caps
+  text-transform: none !important;
   letter-spacing: 0px !important;
   font-weight: 500 !important;
   font-size: 13px !important;
-  
-  // Flexbox for alignment (Text + Icon)
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important; // Space between text and icon
-  
-  // Sizing
+  gap: 6px !important;
   min-height: 28px !important;
   height: 28px !important;
   padding: 0 8px !important;
-  max-width: none !important; // Allow auto width
-  
-  // Remove Carbon's default absolute positioning for icons
+  max-width: none !important;
+
   .cds--btn__icon {
     position: static !important;
     margin: 0 !important;
     width: 14px !important;
     height: 14px !important;
-    transform: none !important; // Remove hover animations if any
+    transform: none !important;
   }
-  
+
   &:focus {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: var(--cds-layer-hover) !important;
   }
 }
 
-// Primary Button (Save, Confirm)
 .cds--btn--primary {
-  background-color: #2383e2 !important; // Notion Blue
+  background-color: var(--cds-interactive-01) !important;
   border: none !important;
-  color: #ffffff !important;
-  
+  color: var(--cds-text-on-color) !important;
+
   &:hover {
-    background-color: #1d6fbf !important;
+    background-color: var(--cds-hover-primary) !important;
   }
   &:active {
-    background-color: #1a62a8 !important;
+    background-color: var(--cds-active-primary) !important;
   }
 }
 
-// Secondary / Tertiary / Ghost (Cancel, Delete, Options)
 .cds--btn--secondary,
 .cds--btn--tertiary,
 .cds--btn--ghost {
   background-color: transparent !important;
   border: none !important;
-  color: rgba(255, 255, 255, 0.6) !important;
-  
+  color: var(--cds-text-secondary) !important;
+
   &:hover {
-    background-color: rgba(255, 255, 255, 0.055) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
+    background-color: var(--cds-layer-hover) !important;
+    color: var(--cds-text-primary) !important;
   }
-  
+
   &:active {
-    background-color: rgba(255, 255, 255, 0.08) !important;
+    background-color: var(--cds-layer-active) !important;
   }
 }
 
-// Danger Button
 .cds--btn--danger,
 .cds--btn--danger--ghost {
-  color: rgba(235, 87, 87, 0.8) !important;
+  color: var(--cds-support-error) !important;
   border: none !important;
   background-color: transparent !important;
-  
+
   &:hover {
-    background-color: rgba(235, 87, 87, 0.1) !important;
-    color: #eb5757 !important;
+    background-color: var(--cds-support-error-inverse) !important;
+    color: var(--cds-support-error) !important;
   }
-  
+
   .cds--btn__icon {
     fill: currentColor !important;
   }
 }
 
 // --- INPUTS ---
-// Minimalist, transparent inputs with bottom border
-.cds--text-input, 
-.cds--select-input, 
+.cds--text-input,
+.cds--select-input,
 .cds--text-area,
 .cds--number__input-wrapper input {
   background-color: transparent !important;
   border: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
+  border-bottom: 1px solid var(--cds-border-subtle) !important;
+  color: var(--cds-text-primary) !important;
   border-radius: 0 !important;
-  padding: 0 0 0 4px !important; // Text starts near edge
+  padding: 0 0 0 4px !important;
   height: 32px !important;
   font-size: 13px !important;
   transition: border-color 0.2s ease;
-  
+
   &::placeholder {
-    color: rgba(255, 255, 255, 0.3);
+    color: var(--cds-text-placeholder);
   }
-  
+
   &:focus {
-    border-bottom: 1px solid #2383e2 !important; // Blue focus
+    border-bottom: 1px solid var(--cds-interactive-01) !important;
   }
 }
 
@@ -144,9 +133,8 @@ html, body {
   min-height: 60px;
 }
 
-// Labels & Helpers
 .cds--label {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: var(--cds-text-secondary) !important;
   font-size: 11px !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -154,74 +142,72 @@ html, body {
 }
 
 .cds--form__helper-text {
-  color: rgba(255, 255, 255, 0.35) !important;
+  color: var(--cds-text-helper) !important;
   font-size: 11px !important;
   margin-top: 4px !important;
 }
 
-// Select Dropdown Arrow
 .cds--select__arrow {
-  fill: rgba(255, 255, 255, 0.5) !important;
+  fill: var(--cds-text-secondary) !important;
 }
 
 // --- NOTIFICATIONS ---
 .cds--inline-notification {
-  background-color: #252525 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 3px solid; // Keep the accent color
-  
-  &.cds--inline-notification--error { border-left-color: #da1e28; }
-  &.cds--inline-notification--success { border-left-color: #24a148; }
-  &.cds--inline-notification--warning { border-left-color: #f1c21b; }
-  
+  background-color: var(--cds-layer) !important;
+  border: 1px solid var(--cds-border-subtle);
+  border-left: 3px solid;
+
+  &.cds--inline-notification--error { border-left-color: var(--cds-support-error); }
+  &.cds--inline-notification--success { border-left-color: var(--cds-support-success); }
+  &.cds--inline-notification--warning { border-left-color: var(--cds-support-warning); }
+
   .cds--inline-notification__title,
   .cds--inline-notification__subtitle {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: var(--cds-text-primary) !important;
   }
-  
+
   .cds--inline-notification__icon {
     fill: currentColor;
     opacity: 0.9;
   }
-  
-  // Close button
+
   .cds--inline-notification__close-button {
-    &:hover { background-color: rgba(255, 255, 255, 0.1); }
-    svg { fill: white; }
+    &:hover { background-color: var(--cds-layer-hover); }
+    svg { fill: var(--cds-text-primary); }
   }
 }
 
 // --- MULTISELECT ---
 .cds--list-box {
   background-color: transparent !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-  
+  border-bottom: 1px solid var(--cds-border-subtle) !important;
+
   .cds--list-box__field {
     background: transparent !important;
   }
-  
+
   .cds--list-box__menu {
-    background-color: #252525 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--cds-layer) !important;
+    border: 1px solid var(--cds-border-subtle);
   }
-  
+
   .cds--list-box__menu-item {
-    color: rgba(255, 255, 255, 0.8) !important;
-    
+    color: var(--cds-text-primary) !important;
+
     &:hover, &.cds--list-box__menu-item--highlighted {
-      background-color: rgba(255, 255, 255, 0.1) !important;
-      color: white !important;
+      background-color: var(--cds-layer-hover) !important;
+      color: var(--cds-text-primary) !important;
     }
-    
+
     &.cds--list-box__menu-item--active {
-      background-color: #2383e2 !important;
-      color: white !important;
+      background-color: var(--cds-interactive-01) !important;
+      color: var(--cds-text-on-color) !important;
     }
   }
-  
+
   .cds--tag--filter {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
+    background-color: var(--cds-layer-hover) !important;
+    color: var(--cds-text-primary) !important;
     border-radius: 4px !important;
   }
 }

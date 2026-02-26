@@ -1,8 +1,5 @@
 @use '@carbon/react/scss/type' as *;
 @use '@carbon/react/scss/spacing' as *;
-@use '@carbon/react/scss/theme' as *;
-@use '@carbon/react/scss/colors' as *;
-@use '@carbon/react/scss/breakpoint' as *;
 
 // App Shell Container - Flex Row
 .app-shell {
@@ -20,11 +17,11 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  overflow: hidden; // Hide content when width is 0
-  background-color: #191919; // Notion Sidebar BG
+  overflow: hidden;
+  background-color: var(--cds-layer);
   z-index: 100;
-  color: rgba(255,255,255,0.81);
-  
+  color: var(--cds-text-primary);
+
   &.collapsed {
     width: 0 !important;
     min-width: 0 !important;
@@ -34,14 +31,14 @@
 }
 
 .left-sidebar {
-  border-right: 1px solid rgba(255,255,255,0.08);
+  border-right: 1px solid var(--cds-border-subtle);
 }
 
 .right-sidebar {
-  border-left: 1px solid rgba(255,255,255,0.08);
+  border-left: 1px solid var(--cds-border-subtle);
 }
 
-// RESIZERS — overlaid on sidebar edges, no extra space
+// RESIZERS
 .resizer {
   width: 6px;
   margin-left: -3px;
@@ -74,8 +71,8 @@
   justify-content: space-between;
   height: 40px;
   padding: 0 8px;
-  background-color: #191919;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background-color: var(--cds-layer);
+  border-bottom: 1px solid var(--cds-border-subtle);
   flex-shrink: 0;
   z-index: 90;
 
@@ -88,7 +85,7 @@
   &__title {
     font-size: 13px;
     font-weight: 600;
-    color: rgba(255,255,255,0.7);
+    color: var(--cds-text-secondary);
     margin-left: 4px;
     letter-spacing: 0.5px;
     user-select: none;
@@ -103,17 +100,22 @@
     border: none;
     border-radius: 0;
     background: transparent;
-    color: rgba(255,255,255,0.6);
+    color: var(--cds-text-secondary);
     cursor: pointer;
     transition: background-color 0.15s, color 0.15s;
 
     &:hover {
-      background-color: rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.95);
+      background-color: var(--cds-layer-hover);
+      color: var(--cds-text-primary);
     }
 
     &:active {
-      background-color: rgba(255,255,255,0.12);
+      background-color: var(--cds-layer-active);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
     }
 
     svg {
@@ -137,12 +139,11 @@
   }
 }
 
-
 // Custom Sidebar Navigation (Notion-style)
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  padding: 6px 0; // Tighter padding
+  padding: 6px 0;
   gap: 2px;
 }
 
@@ -156,7 +157,7 @@
 .sidebar-header {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255,255,255,0.45);
+  color: var(--cds-text-placeholder);
   padding: 0 12px;
   margin-bottom: 6px;
   margin-top: 6px;
@@ -166,12 +167,12 @@
   align-items: center;
   justify-content: space-between;
   height: 20px;
-  
+
   button {
     opacity: 0;
     transition: opacity 0.2s;
   }
-  
+
   &:hover button {
     opacity: 1;
   }
@@ -185,7 +186,7 @@
   min-height: 28px;
   border-radius: 0;
   cursor: pointer;
-  color: rgba(255,255,255,0.81);
+  color: var(--cds-text-secondary);
   transition: background-color 0.1s;
   background: transparent;
   border: none;
@@ -196,13 +197,13 @@
   line-height: 1.5;
 
   &:hover {
-    background-color: rgba(255,255,255,0.055);
-    color: rgba(255,255,255,1);
+    background-color: var(--cds-layer-hover);
+    color: var(--cds-text-primary);
   }
 
   &.active {
-    background-color: rgba(255,255,255,0.08); // Slightly stronger for active
-    color: rgba(255,255,255,1);
+    background-color: var(--cds-layer-selected);
+    color: var(--cds-text-primary);
   }
 
   svg {
@@ -223,16 +224,16 @@
   border-radius: 0;
   transition: background-color 0.1s;
   height: 32px;
-  
+
   &:hover {
-    background-color: rgba(255,255,255,0.055);
+    background-color: var(--cds-layer-hover);
   }
 
   .workspace-icon {
     width: 18px;
     height: 18px;
     background-color: var(--cds-interactive-01);
-    color: #fff;
+    color: var(--cds-text-on-color);
     border-radius: 0;
     display: flex;
     align-items: center;
@@ -243,37 +244,58 @@
 
   .workspace-details {
     display: flex;
-    flex-direction: row; // Notion is typically one line or very compact
+    flex-direction: row;
     align-items: center;
     gap: 6px;
-    
+
     .workspace-name {
       font-size: 14px;
-      color: rgba(255,255,255,0.9);
+      color: var(--cds-text-primary);
       font-weight: 500;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
-    .workspace-plan {
-      display: none; // Hide plan for compactness like Notion default usually just shows name
-    }
   }
-  
+
   .workspace-chevron {
     margin-left: auto;
     opacity: 0.5;
-    color: rgba(255,255,255,0.6);
+    color: var(--cds-text-secondary);
   }
 }
 
 .sidebar-content {
-  padding: 0 !important; 
-  background-color: transparent; 
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0 !important;
+  background-color: transparent;
+
+  .cds--contained-list {
+    margin-bottom: $spacing-05;
+  }
+
+  .active-item {
+    background-color: var(--cds-layer-selected) !important;
+    border-left: none;
+
+    .cds--contained-list-item__content {
+      font-weight: 600;
+    }
+  }
 }
 
-// Hide Carbon ContainedList styling overrides if any
+.sidebar-footer {
+  border-top: 1px solid var(--cds-border-subtle);
+  background-color: var(--cds-layer);
+  display: flex;
+  align-items: stretch;
+  min-height: auto;
+  padding: 8px 0;
+}
 
 .panel-container {
   display: flex;
@@ -284,8 +306,8 @@
 
 .panel-header {
   padding: 0 $spacing-05;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  background-color: #191919;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  background-color: var(--cds-layer);
   display: flex;
   align-items: center;
   height: 40px;
@@ -309,10 +331,9 @@
   justify-content: space-between;
   height: 40px;
   padding: 0 8px;
-  background-color: #191919;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background-color: var(--cds-layer);
+  border-bottom: 1px solid var(--cds-border-subtle);
   flex-shrink: 0;
-
 }
 
 .chat-agent-select {
@@ -322,71 +343,35 @@
   padding: 0 8px;
   border: none;
   border-radius: 0;
-  background-color: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.9);
+  background-color: var(--cds-field);
+  color: var(--cds-text-primary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   outline: none;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='rgba(255,255,255,0.5)' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='%23999999' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 8px center;
   padding-right: 24px;
 
   &:hover {
-    background-color: rgba(255,255,255,0.1);
+    background-color: var(--cds-field-hover);
   }
 
-  &:focus {
-    outline: 1px solid rgba(255,255,255,0.2);
+  option {
+    background-color: var(--cds-layer);
+    color: var(--cds-text-primary);
   }
 
   &:disabled {
     opacity: 0.4;
     cursor: default;
   }
-
-  option {
-    background-color: #191919;
-    color: rgba(255,255,255,0.9);
-  }
 }
 
-
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  // background-color: var(--cds-background); // Removed to keep sidebar bg
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-
-  .cds--contained-list {
-    margin-bottom: $spacing-05;
-  }
-
-  .active-item {
-    background-color: rgba(255,255,255,0.08) !important;
-    border-left: none; // Notion uses bg color, not border
-    
-    .cds--contained-list-item__content {
-      font-weight: 600;
-    }
-  }
-}
-
-.sidebar-footer {
-  border-top: 1px solid rgba(255,255,255,0.08);
-  background-color: #191919;
-  display: flex;
-  align-items: stretch;
-  min-height: auto;
-  padding: 8px 0;
-}
-
-// Chat Messages (inside .sidebar-content)
+// Chat Messages
 .chat-messages {
   padding: 0;
   display: flex;
@@ -394,13 +379,6 @@
   width: 100%;
 }
 
-.chat-input-area {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-}
-
-// Chat Specific Styles
 .chat-message {
   width: 100%;
   padding: $spacing-05;
@@ -410,7 +388,7 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-02;
-  
+
   &.user {
     background-color: var(--cds-layer-01);
   }
@@ -440,24 +418,42 @@
   @include type-style('label-01');
 }
 
-.left-input-container {
-  flex: 1;
-  .cds--text-area__label-wrapper { display: none !important; }
-  .cds--text-area__wrapper {
-    border: none !important;
-    background: transparent;
-    &:focus-within { border-top: 2px solid var(--cds-interactive-01) !important; }
-  }
-  .cds--text-area {
-    resize: none !important;
-    border: none !important;
-    background: transparent;
-  }
-}
-
-.right-button-container {
+// Chat input
+.chat-input-area {
   display: flex;
   align-items: flex-start;
+  width: 100%;
+  border-top: 1px solid var(--cds-border-subtle);
+  background-color: var(--cds-layer);
+
+  .chat-textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--cds-text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    padding: 10px 12px;
+    resize: none;
+    min-height: 40px;
+    max-height: 200px;
+    line-height: 1.5;
+    overflow-y: auto;
+
+    &::placeholder {
+      color: var(--cds-text-placeholder);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  .chat-input-actions {
+    padding: 6px 6px 0 0;
+    flex-shrink: 0;
+  }
 }
 
 .typing-cursor {
@@ -476,30 +472,6 @@
 }
 
 // Project Navigation
-.sidebar-accordion {
-  .cds--accordion__item {
-    border-bottom: 1px solid var(--cds-border-subtle);
-    
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-
-  .cds--accordion__heading {
-    padding: $spacing-02 $spacing-03;
-  }
-  
-  .cds--accordion__title {
-    @include type-style('body-01');
-    font-weight: 500;
-  }
-  
-  .cds--accordion__content {
-    padding: 0;
-    margin: 0;
-  }
-}
-
 .project-nav-group {
   display: flex;
   flex-direction: column;
@@ -508,7 +480,7 @@
 
 .project-subtitle {
   font-size: 11px;
-  color: rgba(255,255,255,0.45);
+  color: var(--cds-text-placeholder);
   padding: 4px 12px;
   padding-left: 24px;
   text-transform: uppercase;
@@ -517,20 +489,20 @@
 }
 
 .sidebar-item.nested {
-  padding-left: 24px; // Indent
-  
+  padding-left: 24px;
+
   &.deep {
-    padding-left: 40px; // Deeper indent for agents inside group
+    padding-left: 40px;
   }
 
   &.add-item {
-     color: rgba(255,255,255,0.5);
-     font-size: 12px;
-     
-     &:hover {
-        background-color: rgba(255,255,255,0.055);
-        color: rgba(255,255,255,0.8);
-     }
+    color: var(--cds-text-placeholder);
+    font-size: 12px;
+
+    &:hover {
+      background-color: var(--cds-layer-hover);
+      color: var(--cds-text-secondary);
+    }
   }
 }
 
@@ -552,7 +524,25 @@
 }
 
 .nested-list {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--cds-layer-accent);
   margin-top: 2px;
   margin-bottom: 2px;
+}
+
+// Markdown rendered content (chat + memory)
+.message-content, .memory-content {
+  p { margin: 0 0 0.5em; &:last-child { margin-bottom: 0; } }
+  ul, ol { margin: 0.25em 0 0.5em 1.25em; padding: 0; }
+  li { margin-bottom: 2px; }
+  code { font-family: var(--cds-code-font, monospace); font-size: 0.85em; background: var(--cds-layer-accent); padding: 1px 4px; border-radius: 2px; }
+  pre { background: var(--cds-layer-accent); padding: 0.75rem; overflow-x: auto; margin: 0.5em 0; code { background: none; padding: 0; } }
+  h1, h2, h3, h4 { margin: 0.75em 0 0.25em; font-weight: 600; line-height: 1.3; }
+  h1 { font-size: 1.1em; }
+  h2 { font-size: 1em; }
+  h3, h4 { font-size: 0.95em; }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+  blockquote { border-left: 2px solid var(--cds-border-subtle); margin: 0.5em 0; padding-left: 0.75rem; color: var(--cds-text-secondary); }
+  a { color: var(--cds-link-primary); text-decoration: none; &:hover { text-decoration: underline; } }
+  hr { border: none; border-top: 1px solid var(--cds-border-subtle); margin: 0.75em 0; }
 }
