@@ -37,7 +37,6 @@ function loadMessages(agentId: string): ChatMessage[] {
 
 function saveMessages(agentId: string, messages: ChatMessage[]): void {
   if (!agentId) return;
-  // Keep last 200 messages to avoid localStorage bloat
   const trimmed = messages.slice(-200);
   localStorage.setItem(getChatKey(agentId), JSON.stringify(trimmed));
 }
@@ -86,15 +85,13 @@ export function AgentChat() {
     }
   }, [messages, selectedAgentId]);
 
-  // Health check via NanoClaw's GET /api/health
   const selectedAgent = agents.find(a => a.id === selectedAgentId);
-  const agentUrl = selectedAgent?.port ? `http://127.0.0.1:${selectedAgent.port}` : null;
 
-  // Load chat history from NanoClaw when agent becomes healthy
+  // Health check via OpenClaw gateway status
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
   useEffect(() => {
-    if (!agentUrl || selectedAgent?.status !== 'running') {
+    if (selectedAgent?.status !== 'running') {
       setIsHealthy(false);
       return;
     }
@@ -103,8 +100,11 @@ export function AgentChat() {
 
     const checkHealth = async () => {
       try {
-        const res = await fetch(`${agentUrl}/api/health`, { signal: AbortSignal.timeout(3000) });
-        if (!cancelled) setIsHealthy(res.ok);
+        const res = await fetch('/api/openclaw/status', { signal: AbortSignal.timeout(3000) });
+        if (!cancelled) {
+          const data = await res.json();
+          setIsHealthy(data.status === 'online' || data.running === true);
+        }
       } catch {
         if (!cancelled) setIsHealthy(false);
       }
@@ -113,18 +113,20 @@ export function AgentChat() {
     checkHealth();
     const interval = setInterval(checkHealth, 15000);
     return () => { cancelled = true; clearInterval(interval); };
-  }, [agentUrl, selectedAgent?.status]);
+  }, [selectedAgent?.status]);
 
-  // Fetch history from NanoClaw when healthy
+  // Fetch history from OpenClaw when healthy
   useEffect(() => {
-    if (!agentUrl || !isHealthy || historyLoaded) return;
+    if (!isHealthy || historyLoaded || !selectedAgentId) return;
 
-    fetch(`${agentUrl}/api/messages?limit=200`, { signal: AbortSignal.timeout(5000) })
+    fetch(`/api/openclaw/sessions?agentId=${selectedAgentId}&limit=200`, {
+      signal: AbortSignal.timeout(5000),
+    })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data?.messages?.length > 0) {
-          const mapped: ChatMessage[] = data.messages.map((m: { content: string; timestamp: string; is_bot_message: number }) => ({
-            role: (m.is_bot_message ? 'assistant' : 'user') as 'user' | 'assistant',
+          const mapped: ChatMessage[] = data.messages.map((m: { role: string; content: string; timestamp: string }) => ({
+            role: m.role as 'user' | 'assistant',
             content: m.content,
             timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           }));
@@ -134,7 +136,7 @@ export function AgentChat() {
         setHistoryLoaded(true);
       })
       .catch(() => { setHistoryLoaded(true); });
-  }, [agentUrl, isHealthy, historyLoaded, selectedAgentId]);
+  }, [isHealthy, historyLoaded, selectedAgentId]);
 
   // Reset history loaded flag when switching agents
   useEffect(() => {
@@ -145,7 +147,7 @@ export function AgentChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
 
-  const isConnectable = selectedAgent?.status === 'running' && agentUrl && isHealthy;
+  const isConnectable = selectedAgent?.status === 'running' && isHealthy;
 
   const clearChat = () => {
     setMessages([]);
@@ -156,7 +158,7 @@ export function AgentChat() {
 
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();
-    if (!messageText || isThinking || !agentUrl) return;
+    if (!messageText || isThinking) return;
 
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setMessages(prev => [...prev, { role: 'user', content: messageText, timestamp }]);
@@ -166,10 +168,10 @@ export function AgentChat() {
     let assistantText = '';
 
     try {
-      const response = await fetch(`${agentUrl}/api/chat`, {
+      const response = await fetch('/api/openclaw/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: messageText }),
+        body: JSON.stringify({ message: messageText, agentId: selectedAgentId }),
       });
 
       if (!response.ok) {
@@ -199,18 +201,17 @@ export function AgentChat() {
             try {
               const data = JSON.parse(line.slice(6));
               if (currentEvent === 'message' && data.text) {
-                if (!assistantText) {
-                  assistantText = data.text;
-                  const replyTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                  setMessages(prev => [...prev, { role: 'assistant', content: data.text, timestamp: replyTimestamp }]);
-                } else {
-                  assistantText += '\n\n' + data.text;
-                  setMessages(prev => {
+                assistantText = data.text;
+                const replyTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                setMessages(prev => {
+                  const last = prev[prev.length - 1];
+                  if (last?.role === 'assistant') {
                     const updated = [...prev];
-                    updated[updated.length - 1] = { ...updated[updated.length - 1], content: assistantText };
+                    updated[updated.length - 1] = { ...last, content: assistantText };
                     return updated;
-                  });
-                }
+                  }
+                  return [...prev, { role: 'assistant', content: assistantText, timestamp: replyTimestamp }];
+                });
                 setIsThinking(false);
               } else if (currentEvent === 'error' && data.text) {
                 setMessages(prev => [...prev, {
@@ -259,7 +260,7 @@ export function AgentChat() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <CircleFilled size={8} style={{ color: isHealthy ? 'var(--cds-support-success)' : 'var(--cds-text-disabled)' }} />
               <span style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)' }}>
-                {isHealthy ? `Connected :${selectedAgent.port}` : selectedAgent.status === 'running' ? 'Connecting...' : 'Not running'}
+                {isHealthy ? 'Connected to OpenClaw' : selectedAgent.status === 'running' ? 'Connecting...' : 'Not running'}
               </span>
             </div>
           )}
@@ -285,7 +286,7 @@ export function AgentChat() {
                 <>
                   <p>{selectedAgent.name} is {selectedAgent.status === 'running' ? 'connecting' : 'not running'}</p>
                   <p style={{ fontSize: '0.75rem', color: 'var(--cds-text-secondary)', marginTop: '0.5rem' }}>
-                    {selectedAgent.status === 'running' ? 'Waiting for health check...' : 'Start the agent from the Agents page to chat'}
+                    {selectedAgent.status === 'running' ? 'Waiting for OpenClaw gateway...' : 'Start the agent from the Agents page to chat'}
                   </p>
                 </>
               ) : (

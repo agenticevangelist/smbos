@@ -6,9 +6,8 @@ const nextConfig: NextConfig = {
     silenceDeprecations: ['legacy-js-api'],
   },
   serverExternalPackages: [
-    '@whiskeysockets/baileys',
+    'ws',
     'pino',
-    'qrcode-terminal',
     '@supabase/supabase-js',
     '@anthropic-ai/sdk',
     'cheerio',

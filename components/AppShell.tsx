@@ -18,7 +18,7 @@ import { Agents } from './Agents';
 import { ScheduledTasks } from './ScheduledTasks';
 import { Dashboard } from './Dashboard';
 import { SkillsManagement } from './SkillsManagement';
-import { NanoClawSettings } from './NanoClawSettings';
+import { OpenClawSettings } from './OpenClawSettings';
 import { AgentChat } from './AgentChat';
 import './AppShell.scss';
 import packageJson from '../package.json';
@@ -242,12 +242,12 @@ export function AppShell() {
                 </div>
               </ContainedListItem>
               <ContainedListItem
-                onClick={() => handleNavigation('nanoclaw-settings')}
-                className={activePage === 'nanoclaw-settings' ? 'active-item' : ''}
+                onClick={() => handleNavigation('openclaw-settings')}
+                className={activePage === 'openclaw-settings' ? 'active-item' : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Settings size={16} />
-                  NanoClaw Settings
+                  OpenClaw Settings
                 </div>
               </ContainedListItem>
             </ContainedList>
@@ -326,8 +326,8 @@ export function AppShell() {
               <Agents />
           ) : activePage === 'tasks' ? (
               <ScheduledTasks />
-          ) : activePage === 'nanoclaw-settings' ? (
-              <NanoClawSettings />
+          ) : activePage === 'openclaw-settings' ? (
+              <OpenClawSettings />
           ) : (
               <DynamicSkillUI skillId={activePage} />
           )}

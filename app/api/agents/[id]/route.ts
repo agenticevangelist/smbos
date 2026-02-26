@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAgentConfig } from '@/lib/agents/registry';
-import { getAgentStatus, getProcessInfo, getProcessLogs } from '@/lib/agents/lifecycle';
+import { getAgentStatus, getProcessLogs } from '@/lib/agents/lifecycle';
 
 export async function GET(
   _request: NextRequest,
@@ -14,8 +14,7 @@ export async function GET(
   }
 
   const status = getAgentStatus(id);
-
-  const logs = getProcessLogs(id);
+  const logs = getProcessLogs();
 
   return NextResponse.json({
     id: config.id,
@@ -25,16 +24,15 @@ export async function GET(
     max_tokens: config.frontmatter.max_tokens,
     temperature: config.frontmatter.temperature,
     systemPrompt: config.systemPrompt,
-    port: config.config.port,
+    port: status.port,
     tools: config.config.tools,
     status: status.status,
-    pid: status.pid,
     uptime: status.uptime,
     processLogs: logs,
   });
 }
 
-/** POST /api/agents/[id] — send a message to the agent */
+/** POST /api/agents/[id] — send a message to the agent via OpenClaw */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -46,16 +44,16 @@ export async function POST(
     return NextResponse.json({ error: 'action is required' }, { status: 400 });
   }
 
-  const proc = getProcessInfo(id);
-  if (!proc) {
+  const status = getAgentStatus(id);
+  if (status.status !== 'running') {
     return NextResponse.json({ error: 'Agent is not running' }, { status: 400 });
   }
 
   try {
-    const res = await fetch(`http://127.0.0.1:${proc.port}/api/chat`, {
+    const res = await fetch('/api/openclaw/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: body.action }),
+      body: JSON.stringify({ message: body.action, agentId: id }),
     });
 
     if (res.ok) {
@@ -63,7 +61,7 @@ export async function POST(
     } else {
       return NextResponse.json({ error: `Agent returned ${res.status}` }, { status: 502 });
     }
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to reach agent' }, { status: 502 });
   }
 }

@@ -1,0 +1,24 @@
+{
+  "name": "tgcli",
+  "version": "1.0.0",
+  "description": "Telegram Client CLI (MTProto userbot) for OpenClaw agents",
+  "type": "module",
+  "bin": {
+    "tgcli": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "dotenv": "^16.5.0",
+    "qrcode-terminal": "^0.12.0",
+    "telegram": "^2.26.22"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/qrcode-terminal": "^0.12.0",
+    "typescript": "^5.7.0"
+  }
+}

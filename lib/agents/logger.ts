@@ -8,7 +8,11 @@ export type LogEventType =
   | 'process:stderr'
   | 'process:stdout'
   | 'chat:message'
-  | 'chat:response';
+  | 'chat:response'
+  | 'gateway:start'
+  | 'gateway:stop'
+  | 'gateway:error'
+  | 'gateway:adopt';
 
 export interface LogEntry {
   timestamp: string;
