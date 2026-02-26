@@ -67,12 +67,12 @@ export function ScheduledTasks({ agentIds, rpc, connected }: ScheduledTasksProps
         schedule: job.schedule?.kind === 'cron'
           ? job.schedule.expr
           : job.schedule?.kind === 'every'
-          ? `every ${job.schedule.interval}`
+          ? (() => { const ms = job.schedule.everyMs; if (!ms) return 'every ?'; const m = ms / 60000; return m >= 60 ? `every ${Math.round(m/60)}h` : `every ${Math.round(m)}m`; })()
           : job.schedule?.at || '-',
         status: job.enabled !== false ? 'active' : 'inactive',
         enabled: job.enabled !== false,
-        nextRun: job.nextRunAt
-          ? new Date(job.nextRunAt).toLocaleString()
+        nextRun: (job.state?.nextRunAtMs || job.nextRunAt)
+          ? new Date(job.state?.nextRunAtMs || job.nextRunAt).toLocaleString()
           : '-',
       }));
 
@@ -130,6 +130,7 @@ export function ScheduledTasks({ agentIds, rpc, connected }: ScheduledTasksProps
         },
         ...(formAgentId ? { agentId: formAgentId } : {}),
         sessionTarget: formSessionTarget,
+        wakeMode: 'now',
         enabled: formEnabled,
         payload: {
           kind: formSessionTarget === 'isolated' ? 'agentTurn' : 'systemEvent',
