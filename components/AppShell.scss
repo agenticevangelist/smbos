@@ -1,7 +1,10 @@
 @use '@carbon/react/scss/type' as *;
 @use '@carbon/react/scss/spacing' as *;
 
-// App Shell Container - Flex Row
+// =============================================================================
+// APP SHELL
+// =============================================================================
+
 .app-shell {
   display: flex;
   flex-direction: row;
@@ -11,34 +14,35 @@
   background-color: var(--cds-background);
 }
 
-// SHARED SIDEBAR STYLES
-.left-sidebar, .right-sidebar {
-  height: 100% !important;
+// =============================================================================
+// SIDEBARS — layer-01 (one step above background)
+// =============================================================================
+
+.left-sidebar,
+.right-sidebar {
+  height: 100%;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
-  background-color: var(--cds-layer);
+  background-color: var(--cds-layer-01);
   z-index: 100;
-  color: var(--cds-text-primary);
 
   &.collapsed {
     width: 0 !important;
     min-width: 0 !important;
-    border: none;
+    border: none !important;
     flex: 0 0 0 !important;
   }
 }
 
-.left-sidebar {
-  border-right: 1px solid var(--cds-border-subtle);
-}
+.left-sidebar  { border-right: 1px solid var(--cds-border-subtle-01); }
+.right-sidebar { border-left:  1px solid var(--cds-border-subtle-01); }
 
-.right-sidebar {
-  border-left: 1px solid var(--cds-border-subtle);
-}
+// =============================================================================
+// RESIZER
+// =============================================================================
 
-// RESIZERS
 .resizer {
   width: 6px;
   margin-left: -3px;
@@ -48,35 +52,52 @@
   z-index: 1000;
   flex-shrink: 0;
   position: relative;
+  transition: background-color 0.15s;
 
-  &:hover, &.resizing {
-    background-color: var(--cds-interactive-01);
-  }
+  &:hover,
+  &.resizing { background-color: var(--cds-border-interactive); }
 }
 
+// =============================================================================
 // MAIN AREA
+// =============================================================================
+
 .main-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-width: 0;
-  position: relative;
 }
 
-// Custom minimal header
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-07 $spacing-05;
+  background-color: var(--cds-background);
+  display: flex;
+  justify-content: center;
+
+  > * { width: 100%; max-width: 960px; }
+}
+
+// =============================================================================
+// APP HEADER (custom — not a Carbon component)
+// =============================================================================
+
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 40px;
   padding: 0 8px;
-  background-color: var(--cds-layer);
-  border-bottom: 1px solid var(--cds-border-subtle);
+  background-color: var(--cds-layer-01);
+  border-bottom: 1px solid var(--cds-border-subtle-01);
   flex-shrink: 0;
   z-index: 90;
 
-  &__left, &__right {
+  &__left,
+  &__right {
     display: flex;
     align-items: center;
     gap: 2px;
@@ -91,6 +112,7 @@
     user-select: none;
   }
 
+  // Plain <button> element — must define all states manually
   &__btn {
     display: flex;
     align-items: center;
@@ -100,169 +122,40 @@
     border: none;
     border-radius: 0;
     background: transparent;
-    color: var(--cds-text-secondary);
+    color: var(--cds-icon-secondary);
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    transition: background-color 0.1s, color 0.1s;
+
+    svg { fill: currentColor; }
 
     &:hover {
-      background-color: var(--cds-layer-hover);
-      color: var(--cds-text-primary);
+      background-color: var(--cds-layer-hover-01);
+      color: var(--cds-icon-primary);
     }
 
     &:active {
-      background-color: var(--cds-layer-active);
+      background-color: var(--cds-layer-active-01);
+      color: var(--cds-icon-primary);
     }
 
     &:disabled {
-      opacity: 0.4;
-      cursor: default;
-    }
-
-    svg {
-      fill: currentColor;
+      color: var(--cds-icon-disabled);
+      cursor: not-allowed;
+      &:hover { background-color: transparent; color: var(--cds-icon-disabled); }
     }
   }
 }
 
-// Main content area
-.app-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: $spacing-07 $spacing-05;
-  background-color: var(--cds-background);
-  display: flex;
-  justify-content: center;
+// =============================================================================
+// PANEL CONTAINER
+// =============================================================================
 
-  > * {
-    width: 100%;
-    max-width: 960px;
-  }
-}
-
-// Custom Sidebar Navigation (Notion-style)
-.sidebar-nav {
+.panel-container {
   display: flex;
   flex-direction: column;
-  padding: 6px 0;
-  gap: 2px;
-}
-
-.sidebar-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  margin-bottom: 12px;
-}
-
-.sidebar-header {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--cds-text-placeholder);
-  padding: 0 12px;
-  margin-bottom: 6px;
-  margin-top: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 20px;
-
-  button {
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  &:hover button {
-    opacity: 1;
-  }
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  min-height: 28px;
-  border-radius: 0;
-  cursor: pointer;
-  color: var(--cds-text-secondary);
-  transition: background-color 0.1s;
-  background: transparent;
-  border: none;
+  height: 100%;
   width: 100%;
-  text-align: left;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.5;
-
-  &:hover {
-    background-color: var(--cds-layer-hover);
-    color: var(--cds-text-primary);
-  }
-
-  &.active {
-    background-color: var(--cds-layer-selected);
-    color: var(--cds-text-primary);
-  }
-
-  svg {
-    fill: currentColor;
-    opacity: 0.7;
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.sidebar-workspace-switcher {
-  padding: 6px 12px;
-  margin: 8px 0 6px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  border-radius: 0;
-  transition: background-color 0.1s;
-  height: 32px;
-
-  &:hover {
-    background-color: var(--cds-layer-hover);
-  }
-
-  .workspace-icon {
-    width: 18px;
-    height: 18px;
-    background-color: var(--cds-interactive-01);
-    color: var(--cds-text-on-color);
-    border-radius: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 10px;
-  }
-
-  .workspace-details {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-
-    .workspace-name {
-      font-size: 14px;
-      color: var(--cds-text-primary);
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-
-  .workspace-chevron {
-    margin-left: auto;
-    opacity: 0.5;
-    color: var(--cds-text-secondary);
-  }
+  overflow: hidden;
 }
 
 .sidebar-content {
@@ -271,127 +164,241 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 0 !important;
-  background-color: transparent;
-
-  .cds--contained-list {
-    margin-bottom: $spacing-05;
-  }
-
-  .active-item {
-    background-color: var(--cds-layer-selected) !important;
-    border-left: none;
-
-    .cds--contained-list-item__content {
-      font-weight: 600;
-    }
-  }
 }
 
 .sidebar-footer {
-  border-top: 1px solid var(--cds-border-subtle);
-  background-color: var(--cds-layer);
-  display: flex;
-  align-items: stretch;
-  min-height: auto;
+  border-top: 1px solid var(--cds-border-subtle-01);
+  background-color: var(--cds-layer-01);
+  flex-shrink: 0;
   padding: 8px 0;
 }
 
-.panel-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-}
+// =============================================================================
+// LEFT SIDEBAR NAVIGATION
+// =============================================================================
 
-.panel-header {
-  padding: 0 $spacing-05;
-  border-bottom: 1px solid var(--cds-border-subtle);
-  background-color: var(--cds-layer);
+.sidebar-workspace-switcher {
   display: flex;
   align-items: center;
-  height: 40px;
-  flex-shrink: 0;
+  gap: 8px;
+  padding: 6px 12px;
+  margin: 8px 0 4px;
+  height: 32px;
+  cursor: pointer;
+  transition: background-color 0.1s;
 
-  h3 {
-    @include type-style('heading-02');
-    margin: 0;
+  &:hover { background-color: var(--cds-layer-hover-01); }
+
+  .workspace-icon {
+    width: 18px;
+    height: 18px;
+    background-color: var(--cds-interactive);
+    color: var(--cds-text-on-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .workspace-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cds-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--cds-text-primary);
-    font-weight: 600;
+    flex: 1;
+  }
+
+  .workspace-chevron {
+    color: var(--cds-icon-secondary);
+    flex-shrink: 0;
   }
 }
 
-// Chat sidebar header
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 8px;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  height: 24px;
+  margin: 8px 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cds-text-placeholder);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  button { opacity: 0; transition: opacity 0.15s; }
+  &:hover button { opacity: 1; }
+}
+
+// Base nav item — plain <button>
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  min-height: 28px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--cds-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.1s, color 0.1s;
+
+  svg {
+    fill: currentColor;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  &:hover {
+    background-color: var(--cds-layer-hover-01);
+    color: var(--cds-text-primary);
+    svg { opacity: 1; }
+  }
+
+  &.active {
+    background-color: var(--cds-layer-selected-01);
+    color: var(--cds-text-primary);
+    font-weight: 500;
+    svg { opacity: 1; }
+  }
+}
+
+// Nested items — layer-02 context for depth cue
+// The .nested-list wrapper sets layer-02 bg, items hover on layer-hover-02
+.sidebar-item.nested {
+  padding-left: 24px;
+  font-size: 13px;
+  color: var(--cds-text-secondary);
+
+  &:hover {
+    background-color: var(--cds-layer-hover-02);
+    color: var(--cds-text-primary);
+  }
+
+  &.active {
+    background-color: var(--cds-layer-selected-02);
+    color: var(--cds-text-primary);
+  }
+}
+
+// Muted add-item rows
+.sidebar-item.add-item {
+  color: var(--cds-text-placeholder);
+  font-size: 12px;
+
+  &:hover {
+    background-color: var(--cds-layer-hover-01);
+    color: var(--cds-text-secondary);
+  }
+}
+
+// =============================================================================
+// EXPANDABLE ANIMATION (grid trick)
+// =============================================================================
+
+.expandable {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+  overflow: hidden;
+
+  &.expanded { grid-template-rows: 1fr; }
+
+  .expandable-inner { min-height: 0; overflow: hidden; }
+}
+
+// Nested list — layer-02 bg provides depth vs layer-01 sidebar
+.nested-list {
+  background-color: var(--cds-layer-02);
+  margin-top: 1px;
+  margin-bottom: 1px;
+}
+
+.project-nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+// =============================================================================
+// CHAT HEADER
+// =============================================================================
+
 .chat-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 40px;
   padding: 0 8px;
-  background-color: var(--cds-layer);
-  border-bottom: 1px solid var(--cds-border-subtle);
+  background-color: var(--cds-layer-01);
+  border-bottom: 1px solid var(--cds-border-subtle-01);
   flex-shrink: 0;
+  gap: 8px;
 }
 
+// Native <select> styled to match the layer
 .chat-agent-select {
   flex: 1;
   min-width: 0;
   height: 28px;
-  padding: 0 8px;
+  padding: 0 28px 0 8px;
   border: none;
   border-radius: 0;
-  background-color: var(--cds-field);
+  background-color: var(--cds-field-01);
   color: var(--cds-text-primary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  outline: none;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='%23999999' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  // Neutral chevron — works in both themes
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath fill='%23525252' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 8px center;
-  padding-right: 24px;
+  transition: background-color 0.1s;
 
-  &:hover {
-    background-color: var(--cds-field-hover);
-  }
+  &:hover    { background-color: var(--cds-field-hover-01); }
+  &:disabled { color: var(--cds-text-disabled); cursor: not-allowed; }
 
   option {
-    background-color: var(--cds-layer);
+    background-color: var(--cds-layer-01);
     color: var(--cds-text-primary);
   }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
 }
 
-// Chat Messages
+// =============================================================================
+// CHAT MESSAGES
+// =============================================================================
+
 .chat-messages {
-  padding: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
-}
-
-.chat-message {
-  width: 100%;
-  padding: $spacing-05;
-  border-bottom: 1px solid var(--cds-border-subtle);
-  background-color: transparent;
-  color: var(--cds-text-primary);
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-02;
-
-  &.user {
-    background-color: var(--cds-layer-01);
-  }
 }
 
 .chat-empty {
@@ -399,61 +406,43 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: var(--cds-text-secondary);
-  padding: $spacing-05;
+  flex: 1;
+  gap: $spacing-03;
+  color: var(--cds-text-placeholder);
+  padding: $spacing-07;
   text-align: center;
+
+  svg { fill: var(--cds-icon-secondary); }
+  p   { margin: 0; font-size: 13px; }
+}
+
+// Individual message row
+.chat-message {
+  width: 100%;
+  padding: $spacing-04 $spacing-05;
+  border-bottom: 1px solid var(--cds-border-subtle-01);
+  color: var(--cds-text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-02;
+
+  // User messages on layer-02 to visually distinguish from assistant
+  &.user      { background-color: var(--cds-layer-02); }
+  &.assistant { background-color: transparent; }
 }
 
 .message-content {
   @include type-style('body-01');
   word-break: break-word;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: var(--cds-text-primary);
 }
 
 .message-meta {
   display: flex;
   justify-content: flex-end;
-  color: var(--cds-text-secondary);
+  color: var(--cds-text-helper);
   @include type-style('label-01');
-}
-
-// Chat input
-.chat-input-area {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-  border-top: 1px solid var(--cds-border-subtle);
-  background-color: var(--cds-layer);
-
-  .chat-textarea {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--cds-text-primary);
-    font-size: 13px;
-    font-family: inherit;
-    padding: 10px 12px;
-    resize: none;
-    min-height: 40px;
-    max-height: 200px;
-    line-height: 1.5;
-    overflow-y: auto;
-
-    &::placeholder {
-      color: var(--cds-text-placeholder);
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-  }
-
-  .chat-input-actions {
-    padding: 6px 6px 0 0;
-    flex-shrink: 0;
-  }
 }
 
 .typing-cursor {
@@ -464,85 +453,103 @@
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  50%       { opacity: 0; }
 }
 
-.loading-indicator {
-  padding: $spacing-05;
-}
+.loading-indicator { padding: $spacing-05; }
 
-// Project Navigation
-.project-nav-group {
+// =============================================================================
+// CHAT INPUT
+// =============================================================================
+
+.chat-input-area {
   display: flex;
-  flex-direction: column;
-  padding-bottom: 4px;
-}
+  align-items: flex-start;
+  width: 100%;
+  border-top: 1px solid var(--cds-border-subtle-01);
+  background-color: var(--cds-layer-01);
 
-.project-subtitle {
-  font-size: 11px;
-  color: var(--cds-text-placeholder);
-  padding: 4px 12px;
-  padding-left: 24px;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
+  .chat-textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--cds-text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    line-height: 1.5;
+    padding: 10px 12px;
+    resize: none;
+    min-height: 40px;
+    max-height: 200px;
+    overflow-y: auto;
 
-.sidebar-item.nested {
-  padding-left: 24px;
-
-  &.deep {
-    padding-left: 40px;
+    &::placeholder { color: var(--cds-text-placeholder); }
+    &:disabled      { color: var(--cds-text-disabled); cursor: not-allowed; }
   }
 
-  &.add-item {
-    color: var(--cds-text-placeholder);
-    font-size: 12px;
-
-    &:hover {
-      background-color: var(--cds-layer-hover);
-      color: var(--cds-text-secondary);
-    }
+  .chat-input-actions {
+    padding: 6px 6px 0 0;
+    flex-shrink: 0;
   }
 }
 
-// Expandable animation
-.expandable {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.2s ease;
-  overflow: hidden;
+// =============================================================================
+// MARKDOWN CONTENT (chat + memory page)
+// =============================================================================
 
-  &.expanded {
-    grid-template-rows: 1fr;
+.message-content,
+.memory-content {
+  p         { margin: 0 0 0.5em; &:last-child { margin-bottom: 0; } }
+  ul, ol    { margin: 0.25em 0 0.5em 1.25em; padding: 0; }
+  li        { margin-bottom: 2px; }
+  strong    { font-weight: 600; }
+  em        { font-style: italic; }
+
+  a {
+    color: var(--cds-link-primary);
+    text-decoration: none;
+    &:hover { text-decoration: underline; color: var(--cds-link-primary-hover); }
   }
 
-  .expandable-inner {
-    min-height: 0;
-    overflow: hidden;
+  hr {
+    border: none;
+    border-top: 1px solid var(--cds-border-subtle-01);
+    margin: 0.75em 0;
   }
-}
 
-.nested-list {
-  background-color: var(--cds-layer-accent);
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
+  code {
+    font-family: var(--cds-code-font, monospace);
+    font-size: 0.85em;
+    background: var(--cds-layer-accent-01);
+    color: var(--cds-text-primary);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
 
-// Markdown rendered content (chat + memory)
-.message-content, .memory-content {
-  p { margin: 0 0 0.5em; &:last-child { margin-bottom: 0; } }
-  ul, ol { margin: 0.25em 0 0.5em 1.25em; padding: 0; }
-  li { margin-bottom: 2px; }
-  code { font-family: var(--cds-code-font, monospace); font-size: 0.85em; background: var(--cds-layer-accent); padding: 1px 4px; border-radius: 2px; }
-  pre { background: var(--cds-layer-accent); padding: 0.75rem; overflow-x: auto; margin: 0.5em 0; code { background: none; padding: 0; } }
-  h1, h2, h3, h4 { margin: 0.75em 0 0.25em; font-weight: 600; line-height: 1.3; }
+  pre {
+    background: var(--cds-layer-accent-01);
+    border: 1px solid var(--cds-border-subtle-01);
+    padding: 0.75rem;
+    overflow-x: auto;
+    margin: 0.5em 0;
+    code { background: none; padding: 0; }
+  }
+
+  h1, h2, h3, h4 {
+    color: var(--cds-text-primary);
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0.75em 0 0.25em;
+  }
+
   h1 { font-size: 1.1em; }
-  h2 { font-size: 1em; }
+  h2 { font-size: 1.0em; }
   h3, h4 { font-size: 0.95em; }
-  strong { font-weight: 600; }
-  em { font-style: italic; }
-  blockquote { border-left: 2px solid var(--cds-border-subtle); margin: 0.5em 0; padding-left: 0.75rem; color: var(--cds-text-secondary); }
-  a { color: var(--cds-link-primary); text-decoration: none; &:hover { text-decoration: underline; } }
-  hr { border: none; border-top: 1px solid var(--cds-border-subtle); margin: 0.75em 0; }
+
+  blockquote {
+    border-left: 2px solid var(--cds-border-interactive);
+    margin: 0.5em 0;
+    padding-left: 0.75rem;
+    color: var(--cds-text-secondary);
+  }
 }
