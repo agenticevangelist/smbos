@@ -10,6 +10,16 @@ import { Save, Add, Close } from '@carbon/icons-react';
 import { CHANNEL_DEFS } from './channelDefs';
 import type { AgentPageProps, Binding } from './types';
 
+function getChannelDefaults(chKey: string): Record<string, any> {
+  const def = CHANNEL_DEFS[chKey];
+  if (!def) return {};
+  const defaults: Record<string, any> = {};
+  for (const f of def.fields) {
+    if (f.defaultValue !== undefined) defaults[f.key] = f.defaultValue;
+  }
+  return defaults;
+}
+
 export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
   const [bindings, setBindings] = useState<Binding[]>([]);
   const [configuredChannels, setConfiguredChannels] = useState<Record<string, any>>({});
@@ -21,6 +31,7 @@ export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
   const [formBindings, setFormBindings] = useState<string[]>([]);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedNewChannel, setSelectedNewChannel] = useState('');
+  const [newAccountId, setNewAccountId] = useState('');
 
   const loadData = useCallback(async () => {
     if (!connected) return;
@@ -47,17 +58,28 @@ export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
   useEffect(() => {
     if (isLoading) return;
     const agentBindings = bindings.filter(b => b.agentId === agentId);
-    setFormBindings(agentBindings.map(b => {
+    const bindingKeys = agentBindings.map(b => {
       const ch = b.match.channel ?? '';
       const acc = b.match.accountId;
       return acc && acc !== '*' ? `${ch}:${acc}` : ch;
-    }));
+    });
+    setFormBindings(bindingKeys);
 
     const chConfigs: Record<string, Record<string, any>> = {};
     for (const binding of agentBindings) {
       const chName = binding.match.channel;
-      if (chName && configuredChannels[chName]) {
-        chConfigs[chName] = { ...configuredChannels[chName] };
+      if (!chName) continue;
+      const accountId = binding.match.accountId;
+      const globalChConfig = configuredChannels[chName];
+      if (accountId && accountId !== '*') {
+        // Per-account binding: load from channels[ch].accounts[accountId]
+        const bindingKey = `${chName}:${accountId}`;
+        const accountConfig = globalChConfig?.accounts?.[accountId] ?? {};
+        chConfigs[bindingKey] = { ...getChannelDefaults(chName), ...accountConfig };
+      } else {
+        // Channel-level binding (default account)
+        const { accounts, ...topLevel } = globalChConfig ?? {};
+        chConfigs[chName] = { ...getChannelDefaults(chName), ...topLevel };
       }
     }
     setChannelConfigs(chConfigs);
@@ -67,23 +89,29 @@ export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
     setChannelConfigs(prev => ({ ...prev, [chKey]: { ...prev[chKey], [fieldKey]: value } }));
   };
 
-  const addChannel = (chKey: string) => {
-    if (!chKey || channelConfigs[chKey]) return;
+  const addChannel = (chKey: string, accountId?: string) => {
+    // Determine the binding key: "channel" or "channel:accountId"
+    const bindingKey = accountId ? `${chKey}:${accountId}` : chKey;
+    if (!chKey || channelConfigs[bindingKey]) return;
     const def = CHANNEL_DEFS[chKey];
     if (!def) return;
-    const defaults: Record<string, any> = {};
-    for (const f of def.fields) {
-      if (f.defaultValue !== undefined) defaults[f.key] = f.defaultValue;
+    const base = getChannelDefaults(chKey);
+    if (accountId) {
+      const accountConfig = configuredChannels[chKey]?.accounts?.[accountId] ?? {};
+      setChannelConfigs(prev => ({ ...prev, [bindingKey]: { ...base, ...accountConfig } }));
+    } else {
+      const { accounts, ...topLevel } = configuredChannels[chKey] ?? {};
+      setChannelConfigs(prev => ({ ...prev, [bindingKey]: { ...base, ...topLevel } }));
     }
-    setChannelConfigs(prev => ({ ...prev, [chKey]: defaults }));
-    if (!formBindings.includes(chKey)) setFormBindings(prev => [...prev, chKey]);
+    if (!formBindings.includes(bindingKey)) setFormBindings(prev => [...prev, bindingKey]);
     setAddModalOpen(false);
     setSelectedNewChannel('');
+    setNewAccountId('');
   };
 
-  const removeChannel = (chKey: string) => {
-    setChannelConfigs(prev => { const n = { ...prev }; delete n[chKey]; return n; });
-    setFormBindings(prev => prev.filter(b => !b.startsWith(chKey)));
+  const removeChannel = (bindingKey: string) => {
+    setChannelConfigs(prev => { const n = { ...prev }; delete n[bindingKey]; return n; });
+    setFormBindings(prev => prev.filter(b => b !== bindingKey));
   };
 
   const handleSave = async () => {
@@ -91,29 +119,71 @@ export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
     setError(null);
     try {
       const freshConfig = await rpc<any>('config.get', {});
-      const parsed = freshConfig.parsed ?? JSON.parse(freshConfig.raw);
+      const parsed = freshConfig.parsed ?? (freshConfig.raw ? JSON.parse(freshConfig.raw) : {});
       const hash = freshConfig.hash;
+
+      // Build bindings: keep other agents' bindings, replace this agent's
+      const otherBindings = (parsed.bindings ?? []).filter((b: any) => b.agentId !== agentId);
 
       const newBindings: Binding[] = formBindings.map(ch => {
         const parts = ch.split(':');
-        return { agentId, match: { channel: parts[0], ...(parts[1] ? { accountId: parts[1] } : {}) } };
+        const channelKey = parts[0];
+        const accountId = parts[1] || undefined;
+        return { agentId, match: { channel: channelKey, ...(accountId ? { accountId } : {}) } };
       });
 
-      const updatedBindings = [
-        ...(parsed.bindings ?? []).filter((b: any) => b.agentId !== agentId),
-        ...newBindings,
-      ];
+      const updatedBindings = [...otherBindings, ...newBindings];
 
+      // Build channel configs: merge this agent's channel settings into the global config
       const updatedChannels = { ...(parsed.channels || {}) };
-      for (const [chKey, chConfig] of Object.entries(channelConfigs)) {
+      for (const [bindingKey, chConfig] of Object.entries(channelConfigs)) {
+        const parts = bindingKey.split(':');
+        const chKey = parts[0];
+        const accountId = parts[1] || null;
+
         const processed = { ...chConfig };
+
+        // Normalize textarea fields
         if (typeof processed.allowFrom === 'string') {
           processed.allowFrom = processed.allowFrom.split('\n').map((s: string) => s.trim()).filter(Boolean);
         }
         if (chKey === 'irc' && typeof processed.channels === 'string') {
           processed.channels = processed.channels.split('\n').map((s: string) => s.trim()).filter(Boolean);
         }
-        updatedChannels[chKey] = { ...(updatedChannels[chKey] || {}), ...processed };
+
+        if (accountId) {
+          // Per-account config: write under channels[ch].accounts[accountId]
+          // enabled lives at top-level channel, not per-account
+          if (!processed.dmPolicy || processed.dmPolicy === 'disabled') {
+            const existingAccountDmPolicy = configuredChannels[chKey]?.accounts?.[accountId]?.dmPolicy;
+            if (!existingAccountDmPolicy) processed.dmPolicy = 'pairing';
+          }
+          const existingCh = updatedChannels[chKey] || {};
+          const existingAccounts = existingCh.accounts || {};
+          updatedChannels[chKey] = {
+            ...existingCh,
+            enabled: true,
+            accounts: {
+              ...existingAccounts,
+              [accountId]: { ...(existingAccounts[accountId] || {}), ...processed },
+            },
+          };
+        } else {
+          // Top-level (default account) config
+          processed.enabled = true;
+
+          // If dmPolicy is "disabled", warn but still save (user explicitly chose it)
+          // For new channels being added, ensure dmPolicy defaults to something usable
+          if (!processed.dmPolicy || processed.dmPolicy === 'disabled') {
+            // Only override if the channel is freshly added (no prior config)
+            if (!configuredChannels[chKey]?.dmPolicy) {
+              processed.dmPolicy = 'pairing';
+            }
+          }
+
+          // Merge into global channel config (preserving fields we don't manage, like accounts)
+          updatedChannels[chKey] = { ...(updatedChannels[chKey] || {}), ...processed };
+        }
       }
 
       await rpc('config.patch', {
@@ -128,26 +198,27 @@ export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
     }
   };
 
-  const renderField = (chKey: string, field: typeof CHANNEL_DEFS[string]['fields'][0]) => {
-    const value = channelConfigs[chKey]?.[field.key] ?? field.defaultValue ?? '';
+  const renderField = (bindingKey: string, field: typeof CHANNEL_DEFS[string]['fields'][0]) => {
+    const value = channelConfigs[bindingKey]?.[field.key] ?? field.defaultValue ?? '';
+    // Use bindingKey for IDs to ensure uniqueness (e.g. telegram:nano vs telegram)
     switch (field.type) {
       case 'text':
       case 'password':
-        return <TextInput key={field.key} id={`ch-${chKey}-${field.key}`} labelText={field.label} type={field.type === 'password' ? 'password' : 'text'} value={value} onChange={(e) => updateField(chKey, field.key, e.target.value)} placeholder={field.placeholder} helperText={field.helperText} invalid={field.required && !value} invalidText="Required" />;
+        return <TextInput key={field.key} id={`ch-${bindingKey}-${field.key}`} labelText={field.label} type={field.type === 'password' ? 'password' : 'text'} value={value} onChange={(e) => updateField(bindingKey, field.key, e.target.value)} placeholder={field.placeholder} helperText={field.helperText} invalid={field.required && !value} invalidText="Required" />;
       case 'select':
-        return <Select key={field.key} id={`ch-${chKey}-${field.key}`} labelText={field.label} value={value} onChange={(e) => updateField(chKey, field.key, e.target.value)} helperText={field.helperText}>{field.options?.map(o => <SelectItem key={o.value} value={o.value} text={o.text} />)}</Select>;
+        return <Select key={field.key} id={`ch-${bindingKey}-${field.key}`} labelText={field.label} value={value} onChange={(e) => updateField(bindingKey, field.key, e.target.value)} helperText={field.helperText}>{field.options?.map(o => <SelectItem key={o.value} value={o.value} text={o.text} />)}</Select>;
       case 'toggle':
-        return <Toggle key={field.key} id={`ch-${chKey}-${field.key}`} labelText={field.label} toggled={!!value} onToggle={(c) => updateField(chKey, field.key, c)} />;
+        return <Toggle key={field.key} id={`ch-${bindingKey}-${field.key}`} labelText={field.label} toggled={!!value} onToggle={(c) => updateField(bindingKey, field.key, c)} />;
       case 'number':
-        return <NumberInput key={field.key} id={`ch-${chKey}-${field.key}`} label={field.label} value={value || 0} onChange={(_e: any, { value: v }: any) => updateField(chKey, field.key, v)} helperText={field.helperText} min={0} />;
+        return <NumberInput key={field.key} id={`ch-${bindingKey}-${field.key}`} label={field.label} value={value || 0} onChange={(_e: any, { value: v }: any) => updateField(bindingKey, field.key, v)} helperText={field.helperText} min={0} />;
       case 'textarea':
-        return <TextArea key={field.key} id={`ch-${chKey}-${field.key}`} labelText={field.label} value={Array.isArray(value) ? value.join('\n') : value} onChange={(e) => updateField(chKey, field.key, e.target.value)} placeholder={field.placeholder} helperText={field.helperText} rows={3} />;
+        return <TextArea key={field.key} id={`ch-${bindingKey}-${field.key}`} labelText={field.label} value={Array.isArray(value) ? value.join('\n') : value} onChange={(e) => updateField(bindingKey, field.key, e.target.value)} placeholder={field.placeholder} helperText={field.helperText} rows={3} />;
       default: return null;
     }
   };
 
+  // All channel types are always available — multiple accounts of the same channel are allowed
   const availableNew = Object.entries(CHANNEL_DEFS)
-    .filter(([k]) => !channelConfigs[k])
     .map(([k, d]) => ({ id: k, label: d.label, description: d.description }));
 
   if (!connected) return <InlineNotification kind="warning" title="Not connected" subtitle="Connect to gateway first." hideCloseButton />;
@@ -163,7 +234,7 @@ export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button renderIcon={Add} size="sm" kind="tertiary" onClick={() => setAddModalOpen(true)} disabled={availableNew.length === 0}>Add Channel</Button>
+          <Button renderIcon={Add} size="sm" kind="tertiary" onClick={() => setAddModalOpen(true)}>Add Channel</Button>
           <Button renderIcon={Save} size="sm" onClick={handleSave} disabled={saveStatus === 'saving'}>
             {saveStatus === 'saving' ? 'Saving...' : 'Save'}
           </Button>
@@ -180,36 +251,56 @@ export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {Object.entries(channelConfigs).map(([chKey]) => {
-            const def = CHANNEL_DEFS[chKey];
+          {Object.entries(channelConfigs).map(([bindingKey]) => {
+            const [chName, accountId] = bindingKey.split(':');
+            const def = CHANNEL_DEFS[chName];
             if (!def) return null;
+            const isDmDisabled = channelConfigs[bindingKey]?.dmPolicy === 'disabled';
+            const isConfigured = accountId
+              ? !!configuredChannels[chName]?.accounts?.[accountId]
+              : !!configuredChannels[chName];
             return (
-              <div key={chKey} style={{ border: '1px solid var(--cds-border-subtle)', padding: '1.5rem' }}>
+              <div key={bindingKey} style={{ border: '1px solid var(--cds-border-subtle)', padding: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <h5 style={{ margin: 0, fontWeight: 600 }}>{def.label}</h5>
-                      {configuredChannels[chKey] && <Tag type="green" size="sm">Configured</Tag>}
+                      <h5 style={{ margin: 0, fontWeight: 600 }}>{def.label}{accountId ? ` (${accountId})` : ''}</h5>
+                      {isConfigured && <Tag type="green" size="sm">Configured</Tag>}
                     </div>
                     <p style={{ fontSize: '12px', color: 'var(--cds-text-secondary)', marginTop: '2px' }}>{def.description}</p>
                   </div>
-                  <Button kind="danger--ghost" size="sm" hasIconOnly renderIcon={Close} iconDescription="Remove" onClick={() => removeChannel(chKey)} />
+                  <Button kind="danger--ghost" size="sm" hasIconOnly renderIcon={Close} iconDescription="Remove" onClick={() => removeChannel(bindingKey)} />
                 </div>
+                {isDmDisabled && (
+                  <InlineNotification kind="warning" title="DMs are disabled" subtitle="The DM policy is set to 'Disabled' — the bot will ignore all direct messages. Change it to 'Open', 'Pairing', or 'Allowlist' to receive messages." hideCloseButton lowContrast style={{ marginBottom: '1rem' }} />
+                )}
                 {def.pairingRequired && (
                   <InlineNotification kind="info" title="Pairing Required" subtitle={def.pairingHint} hideCloseButton lowContrast style={{ marginBottom: '1rem' }} />
                 )}
-                <Stack gap={5}>{def.fields.map(f => renderField(chKey, f))}</Stack>
+                <Stack gap={5}>{def.fields.map(f => renderField(bindingKey, f))}</Stack>
               </div>
             );
           })}
         </div>
       )}
 
-      <Modal open={addModalOpen} modalHeading="Add Channel" primaryButtonText="Add" secondaryButtonText="Cancel" primaryButtonDisabled={!selectedNewChannel} onRequestSubmit={() => addChannel(selectedNewChannel)} onRequestClose={() => { setAddModalOpen(false); setSelectedNewChannel(''); }} size="sm">
+      <Modal
+        open={addModalOpen}
+        modalHeading="Add Channel"
+        primaryButtonText="Add"
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={!selectedNewChannel || (!!configuredChannels[selectedNewChannel] && !newAccountId.trim())}
+        onRequestSubmit={() => {
+          const accountId = newAccountId.trim() || undefined;
+          addChannel(selectedNewChannel, accountId);
+        }}
+        onRequestClose={() => { setAddModalOpen(false); setSelectedNewChannel(''); setNewAccountId(''); }}
+        size="sm"
+      >
         <p style={{ marginBottom: '1rem', color: 'var(--cds-text-secondary)' }}>Select a messaging channel to configure.</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {availableNew.map(ch => (
-            <div key={ch.id} onClick={() => setSelectedNewChannel(ch.id)} style={{
+            <div key={ch.id} onClick={() => { setSelectedNewChannel(ch.id); setNewAccountId(''); }} style={{
               padding: '1rem',
               border: `2px solid ${selectedNewChannel === ch.id ? 'var(--cds-interactive-01)' : 'var(--cds-border-subtle)'}`,
               cursor: 'pointer',
@@ -220,6 +311,20 @@ export function AgentChannels({ rpc, connected, agentId }: AgentPageProps) {
             </div>
           ))}
         </div>
+        {selectedNewChannel && configuredChannels[selectedNewChannel] && (
+          <div style={{ marginTop: '1rem' }}>
+            <TextInput
+              id="new-account-id"
+              labelText="Account ID"
+              helperText={`This channel already has a default account. Enter a unique ID for this bot (e.g. "${agentId}").`}
+              value={newAccountId}
+              onChange={(e) => setNewAccountId(e.target.value)}
+              placeholder={agentId}
+              invalid={!newAccountId.trim()}
+              invalidText="Required when channel already has a default account"
+            />
+          </div>
+        )}
       </Modal>
     </div>
   );

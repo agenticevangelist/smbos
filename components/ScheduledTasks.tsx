@@ -42,7 +42,7 @@ export function ScheduledTasks({ agentIds, rpc, connected }: ScheduledTasksProps
   const [formName, setFormName] = useState('');
   const [formCron, setFormCron] = useState('');
   const [formMessage, setFormMessage] = useState('');
-  const [formAgentId, setFormAgentId] = useState('');
+  const [formAgentId, setFormAgentId] = useState(() => agentIds?.length === 1 ? agentIds[0] : '');
   const [formSessionTarget, setFormSessionTarget] = useState<'main' | 'isolated'>('isolated');
   const [formEnabled, setFormEnabled] = useState(true);
   const [formSaving, setFormSaving] = useState(false);
@@ -57,7 +57,7 @@ export function ScheduledTasks({ agentIds, rpc, connected }: ScheduledTasksProps
       let jobs = Array.isArray(res) ? res : (res?.jobs ?? []);
 
       if (agentIds && agentIds.length > 0) {
-        jobs = jobs.filter((job: any) => !job.agentId || agentIds.includes(job.agentId));
+        jobs = jobs.filter((job: any) => agentIds.includes(job.agentId));
       }
 
       const rows = jobs.map((job: any) => ({
@@ -153,7 +153,7 @@ export function ScheduledTasks({ agentIds, rpc, connected }: ScheduledTasksProps
     setFormName('');
     setFormCron('');
     setFormMessage('');
-    setFormAgentId('');
+    setFormAgentId(agentIds?.length === 1 ? agentIds[0] : '');
     setFormSessionTarget('isolated');
     setFormEnabled(true);
   };
