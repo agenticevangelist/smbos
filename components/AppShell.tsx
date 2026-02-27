@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Theme } from '@carbon/react';
 import { DynamicSkillUI } from './DynamicSkillUI';
-import { AgentConfig, AgentChannels, AgentSoul, AgentMemory } from './agent-pages';
+import { AgentConfig, AgentChannels, AgentSoul, AgentMemory, AgentTasks, AgentSessions } from './agent-pages';
 import { ScheduledTasks } from './ScheduledTasks';
 import { Dashboard } from './Dashboard';
 import { ProjectManager } from './ProjectManager';
@@ -46,7 +46,7 @@ export function AppShell() {
 
   const navigateTo = useCallback((page: string) => {
     setActivePage(page);
-    const agentMatch = page.match(/^agent-(.+?)-(config|channels|soul|memory|tasks)$/);
+    const agentMatch = page.match(/^agent-(.+?)-(config|channels|soul|memory|tasks|sessions)$/);
     if (agentMatch) {
       const id = agentMatch[1];
       setExpandedAgentIds(prev => prev.includes(id) ? prev : [...prev, id]);
@@ -156,7 +156,7 @@ export function AppShell() {
   }, [isResizingRight, isResizingLeft]);
 
   const parseAgentPage = (page: string) => {
-    const m = page.match(/^agent-(.+)-(config|channels|soul|memory|tasks)$/);
+    const m = page.match(/^agent-(.+)-(config|channels|soul|memory|tasks|sessions)$/);
     if (m) return { agentId: m[1], subpage: m[2] };
     const newAgent = page.match(/^project-(.+)-add-agent$/);
     if (newAgent) return { agentId: 'new', subpage: 'config', projectId: newAgent[1] };
@@ -198,7 +198,8 @@ export function AppShell() {
         case 'channels': return <AgentChannels {...props} />;
         case 'soul': return <AgentSoul {...props} />;
         case 'memory': return <AgentMemory {...props} />;
-        case 'tasks': return <ScheduledTasks rpc={rpc} connected={ocStatus === 'connected'} agentIds={[agentPage.agentId]} />;
+        case 'tasks': return <AgentTasks rpc={rpc} connected={ocStatus === 'connected'} agentId={agentPage.agentId} />;
+        case 'sessions': return <AgentSessions rpc={rpc} connected={ocStatus === 'connected'} agentId={agentPage.agentId} />;
         default: return <AgentConfig {...props} />;
       }
     }

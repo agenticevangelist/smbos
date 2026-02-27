@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@carbon/react';
-import { Add, Home, Events, Activity, Settings, ChevronUp, ChevronDown, Folder, UserAvatar } from '@carbon/icons-react';
+import { Add, Home, Events, Activity, Settings, ChevronUp, ChevronDown, Folder, UserAvatar, Chat } from '@carbon/icons-react';
 import { Plug, Archive, EditOff } from '@carbon/icons-react';
 
 const AGENT_SUBPAGES = [
@@ -10,6 +10,7 @@ const AGENT_SUBPAGES = [
   { key: 'soul', label: 'Soul', icon: EditOff },
   { key: 'memory', label: 'Memory', icon: Archive },
   { key: 'tasks', label: 'Tasks', icon: Events },
+  { key: 'sessions', label: 'Sessions', icon: Chat },
 ] as const;
 
 interface LeftSidebarProps {
