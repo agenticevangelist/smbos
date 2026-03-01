@@ -13,8 +13,11 @@ import https from "https";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sessionStr = fs.readFileSync(path.join(__dirname, "store/session.txt"), "utf8").trim();
 
-const BOT_TOKEN = "8525580677:AAFxYCIP9Fi8Rlp_iy8ByeL_wYhyOSF766c";
-const DAVID_ID  = "7981171680";
+const BOT_TOKEN  = "8525580677:AAFO5GdNqL-ZPNquL-lnSgvsZYo07ZRVmlw";
+const DALI_GROUP = "-1003733922250";
+const TOPIC_DEV  = 2;
+const TOPIC_DELI = 3;
+const TOPIC_GEN  = 1;
 const SENT_FILE  = "/tmp/cs_sent.json";
 const SEEN_FILE  = "/tmp/cs_seen.json";
 const STATE_FILE = "/tmp/cs_state.json";
@@ -67,6 +70,22 @@ function loadGroups() {
     {u:"Frilans_Birzha",      cat:"dev", priority:1},
     {u:"frilancru",           cat:"dev", priority:1},
     {u:"chatb2bnews",         cat:"dev", priority:2},
+    // === ГРУЗИЯ / МЕЖДУНАРОДНЫЕ ===
+    {u:"ipgeorgiachat",       cat:"dev", priority:1},   // IP Georgia
+    {u:"tbilisi_startup",     cat:"dev", priority:1},   // стартапы Тбилиси
+    {u:"georgia_it",          cat:"dev", priority:1},   // IT в Грузии
+    {u:"CommunITy_GE",        cat:"dev", priority:1},   // IT Community Georgia
+    {u:"it_chat_ge",          cat:"dev", priority:1},   // IT Chat Georgia
+    {u:"jobs_ge",             cat:"dev", priority:1},   // Jobs Georgia
+    {u:"ads_ge",              cat:"dev", priority:2},   // Объявления Грузия
+    // === СТАРТАПЫ / ОСНОВАТЕЛИ ===
+    {u:"thefoundersclub",     cat:"dev", priority:1},   // 50k основателей
+    {u:"saas_founders",       cat:"dev", priority:1},   // SaaS founders
+    {u:"ProductsAndStartups", cat:"dev", priority:1},   // продукты и стартапы
+    // === ФРИЛАНС БИРЖИ ===
+    {u:"mindset_jobs",        cat:"dev", priority:1},   // реально дают лиды
+    {u:"itmankz",             cat:"dev", priority:1},   // даёт лиды KZ
+    {u:"qwork_qwork",         cat:"dev", priority:1},   // 49k фриланс
     // === ТОРГОВЛЯ / E-COMMERCE ===
     {u:"bizekb",              cat:"dev", priority:2},
     {u:"chat_biznes1",        cat:"dev", priority:2},
@@ -105,6 +124,20 @@ const DISCOVER_QUERIES = [
 
 // ─── ключевые слова — ПОКУПАТЕЛЬСКИЕ сигналы ─────────────────────────────────
 // Не "нужен разработчик" (так пишут и сами разработчики), а конкретные проблемы
+const KW_EN = [
+  // English - looking for dev
+  "need developer","looking for developer","need a website",
+  "need a bot","looking for programmer","hire developer",
+  "need automation","looking for freelancer","build a bot",
+  "chatbot for business","need mobile app","need web app",
+  // English - vacancies
+  "hiring developer","hiring programmer","looking for fullstack",
+  "we need a developer","seeking developer",
+  // English - restaurant/delivery
+  "need delivery solution","wolt partner","restaurant software",
+  "food delivery app","restaurant management",
+];
+
 const KW = {
   delivery: [
     // прямые сигналы
@@ -140,44 +173,45 @@ const KW = {
 };
 
 // ─── оценка ──────────────────────────────────────────────────────────────────
+const SKIP_STACK_RE = /\.net|c#|java|kotlin|swift/i;
+
 function scoreMsg(text, cat) {
   const t = text.toLowerCase();
-  let s = 0;
 
-  // Негативные сигналы — скорее всего это продавец, не покупатель
-  if (/предлагаю|помогу|делаю сайты|занимаюсь разработкой|мои услуги|портфолио|кейсы|#помогу|оказываю услуги|разработчик с опытом/.test(t)) return 0;
-  if (/ищу работу|ищу заказы|ищу клиентов|@skach|ищу проект/.test(t)) return 0;
+  // Всё что не запрос клиента — выбрасываем
+  const IS_OFFER = /предлагаю|помогу|делаю сайты|занимаюсь разработкой|мои услуги|портфолио|кейсы|#помогу|оказываю услуги|разработчик с опытом|ищу работу|ищу заказы|ищу клиентов|ищу проект|ищу инвестора|ищу партнёра|хочу стать|нас зовут|наш (проект|сервис|стартап|продукт)|мы (делаем|разрабатываем|предлагаем)|наша (команда|компания)|меня зовут|я (занимаюсь|делаю|разрабатываю|помогаю)|готов (помочь|взяться)|пишите (мне|в лс)/i;
+  if (IS_OFFER.test(t)) return 0;
+  if (SKIP_STACK_RE.test(t)) return 0; // Tilda, WordPress, нерелевантный стек
 
-  // Вакансии — компания ищет разработчика (хороший лид для аутсорса)
-  if (/вакансия.{0,30}(разработчик|программист|python|fullstack|backend|frontend|бот|it|автоматизация)|ищем.{0,20}(разработчика|программиста)|требуется.{0,20}(разработчик|программист)/.test(t)) return 8;
+  // DEV: только прямой запрос на покупку/заказ разработки
+  const DEV_CLIENT = /нужен (разработчик|программист|telegram.?бот|чат.?бот|сайт|лендинг|crm|автоматизац)|нужна (разработка|crm|интеграция|автоматизац|помощь с сайтом|помощь с ботом)|нужно (разработать|сделать (сайт|бот|crm|приложение)|создать (сайт|бот|crm))|ищу (разработчика|программиста|исполнителя на (сайт|бот|разработку))|ищем (разработчика|программиста)|хочу заказать (сайт|бот|разработку|автоматизацию)|хочу (сделать|создать|разработать) (сайт|бот|telegram.?бот|crm|приложение|лендинг)|хотим (сделать|создать|разработать) (сайт|бот|crm)|кто (делает|создаёт|разрабатывает|может сделать) (telegram.?бот|сайт|crm|бота)|порекомендуйте (разработчика|программиста)|посоветуйте (разработчика|программиста)|где найти (разработчика|программиста)|заказать разработку|нужен бот для|нужен сайт для|помогите (сделать|создать|разработать) (сайт|бот|crm)|ищу кто (сделает|сделает бот|сделает сайт)|нужна помощь с разработкой/i;
 
-  if (cat === "delivery" || cat === "any") {
-    if (/wolt|bolt food|glovo|яндекс еда/.test(t)) s += 3;
-    if (/хочу подключить|как подключиться|как попасть|хочу зарегистр/.test(t)) s += 4;
-    if (/открываю|открыл|открыла|новый ресторан|новое кафе/.test(t)) s += 3;
-    if (/рейтинг упал|мало заказов|нет заказов|как поднять/.test(t)) s += 4;
-    if (/помогите|подскажите|посоветуйте/.test(t)) s += 2;
-    if (/ресторан|кафе|доставка|кухня/.test(t)) s += 1;
-    if (/бюджет|стоимость|сколько стоит/.test(t)) s += 2;
-  }
-  if (cat === "dev" || cat === "any") {
-    if (/нужен бот|нужен сайт|нужен лендинг|нужно приложение|нужна crm|нужна автоматизация/.test(t)) s += 5;
-    if (/ищу разработчика|ищу программиста|ищу подрядчика|посоветуйте разработчика/.test(t)) s += 5;
-    if (/как сделать бот|кто делает боты|заказать бота|заказать сайт/.test(t)) s += 4;
-    if (/помогите с сайтом|автоматизировать/.test(t)) s += 3;
-    if (/бюджет|стоимость|сколько стоит|цена/.test(t)) s += 2;
-    if (/срочно|asap|сегодня|быстро/.test(t)) s += 1;
-  }
-  return Math.min(s, 10);
+  // DELIVERY: только прямой запрос ресторатора про агрегаторы
+  const DELI_CLIENT = /подключить (wolt|bolt|glovo|яндекс.?еду)|как (подключиться к|работать с) (wolt|bolt|glovo)|проблем[ауы] с (wolt|bolt|glovo)|рейтинг (wolt|bolt|glovo|на wolt).{0,20}(упал|низкий|поднять|помогите)|wolt.{0,30}(помог|мало заказов|нет заказов)|меню (на wolt|wolt|bolt|glovo)/i;
+
+  if ((cat === 'dev' || cat === 'any') && DEV_CLIENT.test(t)) return 9;
+  if ((cat === 'delivery' || cat === 'any') && DELI_CLIENT.test(t)) return 9;
+  return 0;
 }
 
 function msgText(cat, hint) {
   const t = (hint||"").toLowerCase();
-  const isDelivery = cat==="delivery" || /wolt|bolt|glovo|доставка|ресторан|кафе/.test(t);
-  const isVacancy = /вакансия|ищем разработчика|требуется разработчик|нанимаем/.test(t);
+  const isDelivery = cat==="delivery" || /wolt|bolt|glovo|доставка|ресторан|кафе|delivery|restaurant/.test(t);
+  const isVacancy = /вакансия|ищем разработчика|требуется разработчик|нанимаем|hiring developer|hiring programmer/.test(t);
+  const isEnglish = /need developer|looking for|build a|chatbot for|automate/.test(t);
 
+  const asksForLinks = /резюме|резюмэ|cv|портфолио|portfolio|linkedin|github|ссылку на|ссылка на/i.test(hint||"");
+  const GITHUB = "https://github.com/larsen66";
+  const LINKEDIN = "https://www.linkedin.com/in/davidhakobyan/";
+
+  if (isEnglish || /[a-zA-Z]{10,}/.test(hint||"")) {
+    if (isVacancy) return `Hi! Saw your post about hiring a developer. Open to freelance/contract work — Full-stack dev (Python/FastAPI, Vue, React, Telegram bots, AI automation). GitHub: ${GITHUB} | LinkedIn: ${LINKEDIN}. Happy to discuss your project!`;
+    if (isDelivery) return `Hi! Saw your post about food delivery. I help restaurants connect to Wolt, Bolt Food and Glovo, improve ratings and grow orders. Happy to share more if you're interested!`;
+    return `Hi! Saw your post about development/automation. I'm a Full-stack developer specializing in websites, Telegram bots and AI automation for businesses. Happy to discuss your project and share pricing if you're interested!`;
+  }
   if (isVacancy) {
-    return `Добрый день! Увидел вакансию разработчика. Если рассматриваете аутсорс или проектную работу - могу взяться. Full-stack разработчик, Python/FastAPI/Vue/React, Telegram-боты, AI-автоматизация. Быстрее и дешевле штатного сотрудника. Если интересно - напишите, обсудим задачу.`;
+    const linksLine = asksForLinks ? `\nGitHub: ${GITHUB}\nLinkedIn: ${LINKEDIN}` : "";
+    return `Добрый день! Увидел вакансию. Работаю на проектной и контрактной основе - Full-stack (Python/FastAPI, Vue, React), Telegram-боты, AI-автоматизация.${linksLine}\nОбсудим задачу?`;
   }
   if (isDelivery) {
     return `Добрый день! Увидел Ваш вопрос насчёт доставки. Помогаю ресторанам и кафе подключиться к Wolt, Bolt Food и Glovo, повысить рейтинг и увеличить заказы. Если интересно - расскажу подробнее.`;
@@ -187,29 +221,35 @@ function msgText(cat, hint) {
 
 // ─── утилиты ──────────────────────────────────────────────────────────────────
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-function log(msg) { const l=`[${new Date().toISOString()}] ${msg}`; console.error(l); fs.appendFileSync(LOG_FILE,l+"\n"); }
-function tg(text) {
-  const body = JSON.stringify({chat_id:DAVID_ID,text,parse_mode:"HTML"});
-  return new Promise((ok,err)=>{
-    const r=https.request({hostname:"api.telegram.org",path:`/bot${BOT_TOKEN}/sendMessage`,method:"POST",headers:{"Content-Type":"application/json","Content-Length":Buffer.byteLength(body)}},res=>{let d="";res.on("data",c=>d+=c);res.on("end",()=>ok(d));});
-    r.on("error",err); r.write(body); r.end();
-  }).catch(()=>{});
+function log(msg) { const l=`[${new Date().toISOString()}] ${msg}`; process.stdout.write(l+"\n"); }
+async function tg(text, topic=TOPIC_GEN) {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 5000);
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: DALI_GROUP, message_thread_id: topic, text, parse_mode: 'HTML' }),
+      signal: ctrl.signal
+    });
+    clearTimeout(timer);
+  } catch {}
 }
 
 // ─── поиск в группе ──────────────────────────────────────────────────────────
-async function searchGroup(client, grp) {
+async function searchGroup(client, grp, dialogCache={}) {
   const leads = [];
-  const kws = KW[grp.cat] || KW.dev;
-  const sinceTs = Math.floor(Date.now()/1000) - 14*24*3600; // 14 дней
+  const isGlobal = /community|founders|startup|networking|entrepreneurs|horeca|hub|nomad|dubai|india/i.test(grp.u);
+  const kws = isGlobal ? [...KW_EN, ...(KW[grp.cat]||KW.dev).slice(0,5)] : (KW[grp.cat] || KW.dev);
+  const sinceTs = Math.floor(Date.now()/1000) - 14*24*3600;
 
   let entity;
-  try { entity = await client.getEntity(grp.u); }
-  catch(e) {
-    if (e.message?.includes("FLOOD_WAIT")) {
-      const w = parseInt(e.message.match(/\d+/)?.[0]||"60");
-      const cd=loadCooldowns(); cd[grp.u]=Date.now()+w*1000; saveCooldowns(cd);
-    }
-    log(`skip @${grp.u}: ${e.message.slice(0,60)}`);
+  // Если состоим в группе — берём entity из кэша диалогов (нет flood wait!)
+  const cached = dialogCache[grp.u.toLowerCase()];
+  if (cached) {
+    entity = cached;
+  } else {
+    // НЕ пытаемся резолвить группы не из кэша — gramjs засыпает на весь flood wait!
     return leads;
   }
 
@@ -224,15 +264,17 @@ async function searchGroup(client, grp) {
       for (const msg of (res.messages||[])) {
         if (!msg.fromId?.userId || !msg.message) continue;
         const uid = msg.fromId.userId.toString();
-        let username=null;
-        try { const u=await client.getEntity(new Api.PeerUser({userId:BigInt(uid)})); username=u?.username; } catch {}
+        if (uid === '8466294883') continue; // пропускаем свой аккаунт
+        if (uid === '7310390783') continue; // DevHubGE
+        let username=null, accessHash=null;
+        try { const u=await client.getEntity(new Api.PeerUser({userId:BigInt(uid)})); username=u?.username; accessHash=u?.accessHash?.toString(); } catch {}
         if (!username || alreadySeen(username)) continue;
 
         const s = scoreMsg(msg.message, grp.cat);
         if (s < 5) continue;
 
         markSeen(username);
-        leads.push({username, uid, text:msg.message.slice(0,200), score:s, cat:grp.cat, group:grp.u, date:new Date(msg.date*1000).toLocaleDateString("ru-RU")});
+        leads.push({username, uid, accessHash, text:msg.message.slice(0,200), score:s, cat:grp.cat, group:grp.u, msgId:msg.id, date:new Date(msg.date*1000).toLocaleDateString("ru-RU")});
       }
       await sleep(400);
     } catch(e) {
@@ -272,6 +314,8 @@ async function discoverNiche(client, existingSet, queryIdx) {
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 async function main() {
   log("=== Агент v3 (нишевые группы) запущен ===");
+  // Сброс cooldown при старте чтобы не зависнуть в пустом цикле
+  fs.writeFileSync(COOLDOWN_FILE, '{}');
 
   const client = new TelegramClient(
     new StringSession(sessionStr),
@@ -280,7 +324,36 @@ async function main() {
     {connectionRetries:5}
   );
   await client.connect();
-  log("Подключён к Telegram");
+  log("Подключён к Telegram (@aisceptic0)");
+
+  // Подключаем второй аккаунт @DevHubGE для комментирования в группах
+  let client2 = null;
+  try {
+    const session2Str = fs.readFileSync(path.join(__dirname, 'store/session2.txt'), 'utf8').trim();
+    client2 = new TelegramClient(
+      new StringSession(session2Str),
+      parseInt(process.env.TELEGRAM_API_ID),
+      process.env.TELEGRAM_API_HASH,
+      { connectionRetries: 3 }
+    );
+    await client2.connect();
+    log("Подключён @DevHubGE для комментирования");
+  } catch(e) {
+    log(`[WARN] @DevHubGE не подключён: ${e.message?.slice(0,60)}`);
+  }
+
+  // Загружаем диалоги чтобы кэшировать entity для групп где состоим
+  log("Загружаю диалоги (entity cache)...");
+  const dialogCache = {};
+  try {
+    const dialogs = await client.getDialogs({limit:500});
+    for (const d of dialogs) {
+      if (d.entity?.username) {
+        dialogCache[d.entity.username.toLowerCase()] = d.entity;
+      }
+    }
+    log(`Entity cache: ${Object.keys(dialogCache).length} групп/каналов`);
+  } catch(e) { log(`Cache warn: ${e.message}`); }
 
   await tg(`🔍 <b>Агент v3 запущен!</b>
 
@@ -300,8 +373,10 @@ async function main() {
   let discoverIdx = 0;
   let cycleLeads = [];
   let newGroupsTotal = 0;
+  let recentGroups = [];
+  let groupsScannedTotal = 0;
 
-  const REPORT_INTERVAL  = 30*60*1000;
+  const REPORT_INTERVAL  = 10*60*1000;
   const DISCOVER_INTERVAL = 20*60*1000;
 
   while (true) {
@@ -322,34 +397,90 @@ async function main() {
       saveState(state);
     }
 
-    // Выбираем группу (приоритет = 1 идут чаще)
-    const grp = groups[idx % groups.length];
-    idx++;
+    // Выбираем следующую доступную группу
+    let grp = null;
+    for (let i = 0; i < groups.length; i++) {
+      const g = groups[idx % groups.length];
+      idx++;
+      if (canSearch(g.u)) { grp = g; break; }
+    }
 
-    if (!canSearch(grp.u)) { await sleep(300); continue; }
+    if (!grp) { await sleep(500); continue; }
     touchGroup(grp.u);
 
     log(`Ищу @${grp.u} [${grp.cat}]`);
-    const leads = await searchGroup(client, grp);
-    if (leads.length) log(`  ${leads.length} лидов в @${grp.u}`);
 
-    for (const lead of leads.sort((a,b)=>b.score-a.score)) {
-      state.found++;
+    const batchResults = [{ grp, leads: await searchGroup(client, grp, dialogCache).catch(() => []) }];
 
-      if (lead.score >= 7) {
-        try {
-          await client.sendMessage(new Api.PeerUser({userId:BigInt(lead.uid)}), {message:msgText(lead.cat,lead.text)});
-          markSent(lead.username);
-          state.sent++;
-          log(`✅ НАПИСАЛ @${lead.username} (${lead.score}/10) из @${lead.group}`);
-          await tg(`🟢 <b>Написал (${lead.score}/10)</b>\n@${lead.username} — @${lead.group}\n<i>${lead.text.slice(0,120).replace(/\n/g," ")}</i>`);
-          await sleep(3000);
-        } catch(e) {
-          log(`❌ @${lead.username}: ${e.message.slice(0,60)}`);
+    for (const { grp, leads } of batchResults) {
+      groupsScannedTotal++;
+      recentGroups.unshift(`@${grp.u}`);
+      if (recentGroups.length > 8) recentGroups.pop();
+      if (leads.length) log(`  ${leads.length} лидов в @${grp.u}`);
+
+      for (const lead of leads.sort((a,b)=>b.score-a.score)) {
+        state.found++;
+
+        if (lead.score >= 7) {
+          log(`[LEAD] @${lead.username} (${lead.score}/10) из @${lead.group}`);
+
+          const text = lead.cat === 'delivery'
+            ? `Добрый день! Увидел Ваш вопрос про агрегаторы доставки. Помогаю ресторанам с Wolt/Bolt/Glovo — аудит меню, рейтинг, подключение. Если актуально — готов обсудить.`
+            : `Добрый день! Увидел Ваш вопрос. Занимаюсь разработкой сайтов, Telegram-ботов и AI-автоматизацией для бизнеса. Если интересно — готов обсудить задачу.`;
+
+          // Ответ в группе через @DevHubGE (client2 уже подключён)
+          let commented = false;
+          let dmSent = false;
+          const grpEntity = dialogCache[lead.group.toLowerCase()];
+          if (grpEntity && lead.msgId && client2) {
+            try {
+              const commentText = lead.cat === 'delivery'
+                ? `Добрый день! Помогаю ресторанам с Wolt, Bolt, Glovo — подключение, аудит меню, рейтинг. Если актуально — пишите в ЛС @aisceptic0`
+                : `Добрый день! Занимаюсь разработкой Telegram-ботов, сайтов и AI-автоматизацией для бизнеса. Если нужна помощь — пишите, обсудим. @DevHubGE`;
+
+              await client2.invoke(new Api.messages.SendMessage({
+                peer: new Api.InputPeerChannel({
+                  channelId: BigInt(grpEntity.id),
+                  accessHash: grpEntity.accessHash,
+                }),
+                message: commentText,
+                replyTo: new Api.InputReplyToMessage({ replyToMsgId: lead.msgId }),
+                randomId: BigInt(Math.floor(Math.random() * 1e15)),
+                noWebpage: true,
+              }));
+              commented = true;
+              log(`[COMMENT] @${lead.username} в @${lead.group} (msg ${lead.msgId})`);
+            } catch(e) {
+              log(`[COMMENT_ERR] @${lead.username}: ${e.message?.slice(0,80)}`);
+            }
+          }
+
+          // Также пробуем ЛС если не удался комментарий
+          if (!commented && lead.accessHash) {
+            try {
+              await client.invoke(new Api.messages.SendMessage({
+                peer: new Api.InputPeerUser({ userId: BigInt(lead.uid), accessHash: BigInt(lead.accessHash) }),
+                message: text,
+                randomId: BigInt(Math.floor(Math.random() * 1e15))
+              }));
+              dmSent = true;
+              log(`[DM_SENT] @${lead.username}`);
+              const sentData = JSON.parse(fs.readFileSync(SENT_FILE,'utf8').trim()||'{}');
+              sentData[lead.username] = { ts: Date.now(), msg: text };
+              fs.writeFileSync(SENT_FILE, JSON.stringify(sentData, null, 2));
+            } catch(e) {
+              log(`[DM_ERR] @${lead.username}: ${e.message?.slice(0,60)}`);
+            }
+          }
+
+          // Репорт в DALI AGENTS
+          const topic = lead.cat === 'delivery' ? TOPIC_DELI : TOPIC_DEV;
+          const status = commented ? '💬 Ответил в группе' : dmSent ? '✅ ЛС отправлено' : '⚠️ Нет доступа';
+          const msg = `🔍 <b>Лид (${lead.score}/10)</b> ${status}\n@${lead.username} — @${lead.group}\n\n"${lead.text.slice(0,200).replace(/\n/g,' ')}"`;
+          await tg(msg, topic);
+        } else {
+          if (!cycleLeads.find(l=>l.username===lead.username)) cycleLeads.push(lead);
         }
-      } else {
-        // 5-6/10 — в сводку
-        if (!cycleLeads.find(l=>l.username===lead.username)) cycleLeads.push(lead);
       }
     }
 
@@ -359,15 +490,19 @@ async function main() {
     // Сводка каждые 30 мин
     if (Date.now()-state.lastReport >= REPORT_INTERVAL) {
       const min=Math.round((Date.now()-state.start)/60000);
-      let r=`📊 <b>Сводка за ${min} мин (v3)</b>\n\nГрупп: ${groups.length}\nПросмотров: ${state.cycles}\nНайдено: ${state.found}\nНаписано: ${state.sent}\n`;
+      let r=`📡 <b>Группы — статус (${min} мин)</b>\n\n`;
+      r+=`🔍 Сканировано: <b>${groupsScannedTotal}</b> групп\n`;
+      r+=`🎯 Найдено лидов: <b>${state.found}</b>\n`;
+      r+=`📋 Групп в ротации: ${groups.length}\n`;
+      r+=`\n<b>Последние сканы:</b>\n${recentGroups.slice(0,6).join(', ')}\n`;
       if (cycleLeads.length>0) {
-        r+=`\n🟡 <b>На твоё усмотрение (5-6/10):</b>\n`;
+        r+=`\n🟡 <b>На очереди:</b>\n`;
         for (const l of cycleLeads.slice(0,5)) {
-          r+=`@${l.username} — ${l.score}/10 — @${l.group} — ${l.date}\n<i>${l.text.slice(0,80).replace(/\n/g," ")}</i>\n\n`;
+          r+=`@${l.username} — ${l.score}/10 — @${l.group}\n<i>${l.text.slice(0,80).replace(/\n/g," ")}</i>\n\n`;
         }
         cycleLeads=[];
       } else {
-        r+=`\n😴 Пока тишина — ищу дальше`;
+        r+=`\n😴 Реальных лидов пока нет — ищу`;
       }
       await tg(r);
       state.lastReport=Date.now();

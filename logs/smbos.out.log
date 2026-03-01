@@ -424,3 +424,99 @@
  GET /api/agents 200 in 15ms (compile: 11ms, render: 4ms)
  GET /api/agents 200 in 3ms (compile: 1510µs, render: 1584µs)
  GET /api/agents 200 in 38ms (compile: 14ms, render: 24ms)
+✓ Finished writing to filesystem cache in 35.8s
+[?25h
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.102:3000
+
+✓ Starting...
+✓ Ready in 1227ms
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.102:3000
+
+✓ Starting...
+✓ Ready in 1253ms
+○ Compiling /_not-found/page ...
+ GET /community/components 404 in 5.1s (compile: 5.0s, render: 81ms)
+ GET / 200 in 1979ms (compile: 1760ms, render: 219ms)
+ GET / 200 in 21ms (compile: 1408µs, render: 20ms)
+ GET /api/trpc/demos.homeNewest,demos.homePopular?batch=1&input=%7B%220%22%3A%7B%7D%2C%221%22%3A%7B%7D%7D 404 in 47ms (compile: 8ms, render: 40ms)
+ GET / 200 in 55ms (compile: 8ms, render: 47ms)
+ GET /community/components 404 in 35ms (compile: 6ms, render: 29ms)
+ GET /community/components 404 in 34ms (compile: 5ms, render: 28ms)
+ GET / 200 in 65ms (compile: 17ms, render: 48ms)
+ GET / 200 in 202ms (compile: 33ms, render: 168ms)
+ GET /api/skills 200 in 77ms (compile: 70ms, render: 7ms)
+ GET /api/skills 200 in 3ms (compile: 1549µs, render: 1647µs)
+ GET /api/agents 200 in 224ms (compile: 219ms, render: 5ms)
+ GET /api/agents 200 in 3ms (compile: 845µs, render: 1891µs)
+ GET /api/agents 200 in 5ms (compile: 1317µs, render: 3ms)
+ GET /api/agents 200 in 22ms (compile: 8ms, render: 14ms)
+ GET / 200 in 59ms (compile: 7ms, render: 52ms)
+ GET /api/trpc/demos.homeNewest?input="json":null 404 in 47ms (compile: 11ms, render: 36ms)
+ GET /api/trpc/demos.homePopular?input="json":null 404 in 25ms (compile: 1657µs, render: 23ms)
+ GET /api/trpc/demos.homeFeatured?input="json":null 404 in 16ms (compile: 1786µs, render: 14ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22shader%22%7D%7D 404 in 19ms (compile: 2ms, render: 17ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22hero%22%7D%7D 404 in 16ms (compile: 1985µs, render: 14ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22features%22%7D%7D 404 in 15ms (compile: 1087µs, render: 14ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22ai-chat%22%7D%7D 404 in 18ms (compile: 1851µs, render: 17ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22call-to-action%22%7D%7D 404 in 13ms (compile: 1563µs, render: 11ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22button%22%7D%7D 404 in 14ms (compile: 1241µs, render: 13ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22testimonials%22%7D%7D 404 in 31ms (compile: 1038µs, render: 30ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22pricing-section%22%7D%7D 404 in 14ms (compile: 1409µs, render: 12ms)
+ GET /api/trpc/demos.homeTagDemos?input=%7B%22json%22%3A%7B%22tagSlug%22%3A%22text%22%7D%7D 404 in 14ms (compile: 1942µs, render: 12ms)
+ GET /api/trpc/demos.homeNewest 404 in 49ms (compile: 22ms, render: 27ms)
+ GET /api/trpc/demos.homeNewest 404 in 36ms (compile: 7ms, render: 30ms)
+✓ Finished filesystem cache database compaction in 13.9s
+[?25h
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.102:3000
+
+✓ Starting...
+✓ Ready in 660ms
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.102:3000
+
+✓ Starting...
+✓ Ready in 393ms
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.102:3000
+
+✓ Starting...
+✓ Ready in 383ms
+[?25h
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+
+✓ Starting...
+✓ Ready in 3.5s
+ POST /api/agents/nano/start 200 in 11.1s (compile: 967ms, render: 10.1s)
+○ Compiling / ...
+ GET / 200 in 4.8s (compile: 4.4s, render: 362ms)
+✓ Finished writing to filesystem cache in 10.5s
+ GET / 200 in 380ms (compile: 160ms, render: 220ms)
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+
+✓ Starting...
+✓ Ready in 1900ms
+ POST /api/agents/nano/start 200 in 7.8s (compile: 673ms, render: 7.1s)
+[?25h
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+
+✓ Starting...
+✓ Ready in 2.9s
+ POST /api/agents/nano/start 200 in 1281ms (compile: 975ms, render: 306ms)
+[?25h
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+
+✓ Starting...
+✓ Ready in 1604ms
+ POST /api/agents/nano/start 200 in 8.3s (compile: 677ms, render: 7.6s)

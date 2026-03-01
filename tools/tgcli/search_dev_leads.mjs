@@ -17,6 +17,8 @@ const client = new TelegramClient(
 
 await client.connect();
 
+// Группы где сидят предприниматели, ищущие разработчиков
+// Убрали ipgeorgiachat — там бот-ответы мусорят
 const targetUsernames = [
   "BiznesKontakti",
   "biznes_chat",
@@ -24,40 +26,71 @@ const targetUsernames = [
   "predprinimateli_rf2",
   "predprinimateli_chat",
   "Frilans_Birzha",
-  "restoran_topchat",
-  "restodays",
+  "frilancru",
+  "moibiz",
+  "jobospherechat",
+  "tilda_zakazy_chat",
+  "thefoundersclub",
+  "ProductsAndStartups",
+  "tbilisi_startup",
 ];
 
+// Только конкретные фразы — двухсловные, не срабатывают на бот-ответы
 const keywords = [
+  // Прямой спрос (точные фразы)
+  "ищу разработчика",
   "нужен разработчик",
-  "ищу разработчик",
-  "нужен сайт",
-  "нужен бот",
-  "нужна автоматизация",
-  "ищу фрилансер",
-  "нужен лендинг",
-  "телеграм бот",
-  "нужен ai",
-  "чат-бот",
-  "ищу подрядчик",
-  "кто сделает сайт",
-  "заказать бота",
+  "ищу программиста",
   "нужен программист",
-  "голосовой агент",
+  "ищу фрилансера",
+  "нужен фрилансер",
+
+  // Задачи (двухсловные — меньше ложных срабатываний)
+  "нужен лендинг",
+  "нужен телеграм бот",
+  "нужна автоматизация",
+  "нужен чат-бот",
+  "нужен чатбот",
+  "нужна crm",
+
+  // Вопросы-поиски
+  "кто сделает сайт",
+  "кто делает ботов",
+  "посоветуйте разработчика",
+  "посоветуйте программиста",
+  "порекомендуйте разработчика",
+  "ищу подрядчика на",
+  "ищу исполнителя",
+
+  // Боли
+  "заказать сайт",
+  "заказать бота",
+  "сколько стоит сайт",
+  "сколько стоит бот",
+  "помогите с ботом",
+  "помогите с сайтом",
+];
+
+// Слова-исключения: если в тексте есть — это не лид (человек предлагает услуги)
+const EXCLUDE_PHRASES = [
+  "предлагаю", "разрабатываю", "делаю сайты", "помогу с сайтом",
+  "наша команда", "наша студия", "веб-студия", "мои услуги",
+  "#помогу", "#услуги", "занимаюсь разработкой", "специализируюсь",
+  "портфолио", "кейсы", "стоимость от", "под ключ от",
 ];
 
 const now = Math.floor(Date.now() / 1000);
-const ninetyDaysAgo = now - 90 * 24 * 60 * 60;
+const thirtyDaysAgo = now - 60 * 24 * 60 * 60; // 60 дней
 
 const allResults = [];
 
 for (const username of targetUsernames) {
-  console.error(`\n🔍 Searching in @${username}...`);
+  console.error(`\n🔍 @${username}...`);
   let entity;
   try {
     entity = await client.getEntity(username);
   } catch (e) {
-    console.error(`  ❌ Could not resolve @${username}: ${e.message}`);
+    console.error(`  ❌ ${username}: ${e.message}`);
     continue;
   }
 
@@ -65,46 +98,49 @@ for (const username of targetUsernames) {
     try {
       const messages = await client.getMessages(entity, {
         search: kw,
-        limit: 50,
+        limit: 30,
       });
 
       for (const msg of messages) {
         if (!msg.message) continue;
-        if (msg.date < ninetyDaysAgo) continue;
+        if (msg.date < thirtyDaysAgo) continue;
+
+        const textLower = msg.message.toLowerCase();
+        const isSpam = EXCLUDE_PHRASES.some(ex => textLower.includes(ex.toLowerCase()));
+        if (isSpam) continue;
 
         allResults.push({
           chat: username,
+          chatTitle: entity.title || username,
           senderId: msg.senderId?.toString() ?? "unknown",
-          text: msg.message.slice(0, 200),
+          text: msg.message.slice(0, 300),
           date: new Date(msg.date * 1000).toISOString().slice(0, 16).replace("T", " "),
           keyword: kw,
           _ts: msg.date,
         });
       }
 
-      await new Promise(r => setTimeout(r, 400)); // rate limit
+      await new Promise(r => setTimeout(r, 400));
     } catch (e) {
-      console.error(`  ⚠️ Error searching "${kw}" in @${username}: ${e.message}`);
+      // silent
     }
   }
 }
 
-// Deduplicate by (chat + senderId + first 100 chars of text)
+// Дедупликация
 const seen = new Set();
 const deduped = allResults.filter(r => {
-  const key = `${r.chat}|${r.senderId}|${r.text.slice(0, 100)}`;
+  const key = `${r.chat}|${r.senderId}|${r.text.slice(0, 80)}`;
   if (seen.has(key)) return false;
   seen.add(key);
   return true;
 });
 
-// Sort by freshness (newest first)
 deduped.sort((a, b) => b._ts - a._ts);
 
-// Top 10
-const top10 = deduped.slice(0, 10).map(({ _ts, keyword, ...r }) => r);
+const top = deduped.slice(0, 15).map(({ _ts, ...r }) => r);
 
-console.log("\n===== TOP LEADS =====");
-console.log(JSON.stringify(top10, null, 2));
+console.log(`\n===== DEV ЛИДЫ (${top.length} из ${deduped.length}) =====`);
+console.log(JSON.stringify(top, null, 2));
 
 await client.disconnect();

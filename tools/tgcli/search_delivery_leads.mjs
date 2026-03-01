@@ -16,31 +16,67 @@ const client = new TelegramClient(
 
 await client.connect();
 
+// Группы рестораторов и владельцев кафе
 const targetChats = [
   "restoran_topchat",
   "restodays",
   "restorant_cafe_obchepit",
   "chat_deliverymarketing",
+  "RABOTATs_v_HORECA",
   "BiznesKontakti",
   "biznes_chat",
-  "biznes_club_russia",
+  "moibiz",
 ];
 
+// Фразы, которые говорят о РЕАЛЬНОЙ боли / поиске помощи с доставкой
 const keywords = [
+  // Агрегаторы — проблемы (короткие, реальные)
+  "упал рейтинг",
+  "низкий рейтинг",
+  "упали заказы",
+  "мало заказов",
+  "нет заказов",
+  "заблокировали",
+  "отключили",
+
+  // Wolt/Bolt/Glovo — поиск помощи
   "помогите с wolt",
   "помогите с bolt",
   "помогите с glovo",
-  "нет заказов",
-  "упал рейтинг",
-  "как поднять",
-  "проблема с доставкой",
-  "нужен специалист по доставке",
-  "кто настраивает",
-  "агрегатор",
+  "проблема с wolt",
+  "проблема с bolt",
+  "проблема с glovo",
+  "вопрос по wolt",
+  "вопрос по bolt",
+
+  // Подключение/запуск
+  "хочу подключиться",
+  "как подключиться",
+  "открываю доставку",
+  "запускаю доставку",
+  "хочу запустить доставку",
+  "подключение к wolt",
+  "подключение к bolt",
+  "подключение к glovo",
+
+  // Поиск специалиста
+  "нужен специалист",
+  "ищу специалиста",
+  "кто разбирается в wolt",
+  "кто разбирается в bolt",
+  "нужна помощь с меню",
+  "как поднять рейтинг",
+  "как увеличить заказы",
 ];
 
-// 90 days ago in Unix timestamp
-const ninetyDaysAgo = Math.floor(Date.now() / 1000) - 90 * 24 * 60 * 60;
+// Исключения — не лиды (сами предлагают услуги)
+const EXCLUDE_PHRASES = [
+  "предлагаю", "наша компания", "помогаем ресторанам", "наши услуги",
+  "делаем аудит", "занимаемся продвижением", "специализируемся",
+  "подключаем к", "#реклама", "#услуги", "стоимость от", "под ключ",
+];
+
+const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 60 * 24 * 60 * 60; // 60 дней
 
 const results = [];
 
@@ -48,19 +84,18 @@ for (const chatUsername of targetChats) {
   let entity;
   try {
     entity = await client.getEntity(chatUsername);
-    console.error(`✓ Resolved: ${chatUsername} → ${entity.title || entity.username}`);
+    console.error(`✓ ${chatUsername} → ${entity.title || chatUsername}`);
   } catch (e) {
-    console.error(`✗ Could not resolve: ${chatUsername} — ${e.message}`);
+    console.error(`✗ ${chatUsername}: ${e.message}`);
     continue;
   }
 
   try {
-    // Fetch messages in batches, stop when older than 90 days
     let offsetId = 0;
     let done = false;
     let batchCount = 0;
 
-    while (!done && batchCount < 20) {
+    while (!done && batchCount < 15) {
       const messages = await client.getMessages(entity, {
         limit: 100,
         offsetId,
@@ -71,44 +106,51 @@ for (const chatUsername of targetChats) {
 
       for (const msg of messages) {
         if (!msg.message || !msg.date) continue;
-        if (msg.date < ninetyDaysAgo) {
-          done = true;
-          break;
-        }
+        if (msg.date < thirtyDaysAgo) { done = true; break; }
 
-        const text = msg.message.toLowerCase();
-        const matched = keywords.find(kw => text.includes(kw.toLowerCase()));
-        if (matched) {
-          results.push({
-            chat: chatUsername,
-            chatTitle: entity.title || chatUsername,
-            senderId: msg.senderId?.toString() || "unknown",
-            text: msg.message.slice(0, 200),
-            date: new Date(msg.date * 1000).toISOString().slice(0, 16).replace("T", " "),
-            dateTs: msg.date,
-            keyword: matched,
-          });
-        }
+        const textLower = msg.message.toLowerCase();
+        const matched = keywords.find(kw => textLower.includes(kw.toLowerCase()));
+        if (!matched) continue;
+
+        const isSpam = EXCLUDE_PHRASES.some(ex => textLower.includes(ex.toLowerCase()));
+        if (isSpam) continue;
+
+        results.push({
+          chat: chatUsername,
+          chatTitle: entity.title || chatUsername,
+          senderId: msg.senderId?.toString() || "unknown",
+          text: msg.message.slice(0, 300),
+          date: new Date(msg.date * 1000).toISOString().slice(0, 16).replace("T", " "),
+          dateTs: msg.date,
+          keyword: matched,
+        });
       }
 
       offsetId = messages[messages.length - 1].id;
-
-      // Small delay to avoid flood limits
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 600));
     }
   } catch (e) {
-    console.error(`Error searching ${chatUsername}: ${e.message}`);
+    console.error(`Error: ${chatUsername}: ${e.message}`);
   }
 }
 
 await client.disconnect();
 
-// Sort by date descending, take top 10
-results.sort((a, b) => b.dateTs - a.dateTs);
-const top10 = results.slice(0, 10);
+// Дедупликация + сортировка
+const seen = new Set();
+const deduped = results.filter(r => {
+  const key = `${r.chat}|${r.senderId}|${r.text.slice(0, 80)}`;
+  if (seen.has(key)) return false;
+  seen.add(key);
+  return true;
+});
 
-if (top10.length === 0) {
-  console.log(JSON.stringify({ leads: [], message: "No leads found in the specified chats for the last 90 days." }, null, 2));
+deduped.sort((a, b) => b.dateTs - a.dateTs);
+const top = deduped.slice(0, 15);
+
+console.log(`\n===== DELI ЛИДЫ (${top.length} из ${deduped.length}) =====`);
+if (top.length === 0) {
+  console.log(JSON.stringify({ leads: [], message: "Лидов не найдено за последние 30 дней." }));
 } else {
-  console.log(JSON.stringify({ total: results.length, leads: top10 }, null, 2));
+  console.log(JSON.stringify({ total: deduped.length, leads: top }, null, 2));
 }

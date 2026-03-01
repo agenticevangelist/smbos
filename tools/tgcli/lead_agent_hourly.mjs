@@ -14,7 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sessionStr = fs.readFileSync(path.join(__dirname, "store/session.txt"), "utf8").trim();
 
 const STATE_FILE = "/tmp/lead_agent_state.json";
-const BOT_TOKEN = "8525580677:AAFxYCIP9Fi8Rlp_iy8ByeL_wYhyOSF766c";
+const BOT_TOKEN = "8525580677:AAFO5GdNqL-ZPNquL-lnSgvsZYo07ZRVmlw";
 const DAVID_CHAT_ID = "7981171680";
 
 const ALREADY_SENT = ["@rafael99m", "@mary_gvalia", "@NiSuVi", "@zhannafokk", "@topersmm1"];
